@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSocket } from '../context/SocketContext';
 
-export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenSearch }) {
+export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenSearch, onOpenPasteUrl }) {
   const { room, user, connectionState, playSocket, pauseSocket, seekSocket, changeVideoSocket, changeSpeedSocket, floatingEmojis, addToast } = useSocket();
 
   const containerRef = useRef(null);
@@ -173,7 +173,8 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
   const initPlayer = () => {
     if (playerRef.current || !containerRef.current || !window.YT || !window.YT.Player) return;
 
-    const targetVideoId = videoId || 'GG1_DsScm6U';
+    const targetVideoId = videoId;
+    if (!targetVideoId) return;
 
     try {
       playerRef.current = new window.YT.Player(containerRef.current, {
@@ -643,6 +644,66 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
         ></iframe>
+      )}
+
+      {/* Default Watch Party Poster Screen (When no video is selected yet) */}
+      {!videoId && (
+        <div className="absolute inset-0 z-40 bg-black flex flex-col items-center justify-center overflow-hidden group select-none">
+          {/* Background Poster Image */}
+          <img
+            src="/default-poster.jpg"
+            alt="Watch Party Default Poster"
+            className="absolute inset-0 w-full h-full object-cover object-center opacity-90 transition-transform duration-700 group-hover:scale-105"
+          />
+
+          {/* Dark Aesthetic Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/30 backdrop-blur-[2px]"></div>
+
+          {/* Center Glassmorphic Action Card */}
+          <div className="relative z-10 p-6 sm:p-8 max-w-xl text-center space-y-4 bg-black/70 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl mx-4 animate-fade-in">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#FF0000]/20 border border-[#FF0000]/50 mx-auto flex items-center justify-center text-[#FF0000] shadow-[0_0_25px_rgba(255,0,0,0.5)] animate-pulse">
+              <span className="material-symbols-outlined text-[32px] sm:text-[40px]">play_circle</span>
+            </div>
+
+            <div className="space-y-1.5">
+              <h2 className="text-xl sm:text-3xl font-display font-extrabold text-white tracking-tight">
+                Watch Together, From Anywhere
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                {canControl
+                  ? "Search or paste any YouTube video link to start synchronized live playback for everyone!"
+                  : "Waiting for Host to pick a video. Live synchronized playback will start automatically!"}
+              </p>
+            </div>
+
+            {canControl ? (
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                <button
+                  onClick={onOpenSearch}
+                  className="px-6 py-3 rounded-full bg-[#FF0000] hover:bg-[#CC0000] active:scale-95 text-white font-extrabold text-xs sm:text-sm shadow-[0_0_20px_rgba(255,0,0,0.6)] border border-white/20 flex items-center gap-2 transition-all cursor-pointer hover:scale-105"
+                >
+                  <span className="material-symbols-outlined text-[20px]">search</span>
+                  <span>Search YouTube Video</span>
+                </button>
+
+                {onOpenPasteUrl && (
+                  <button
+                    onClick={onOpenPasteUrl}
+                    className="px-5 py-3 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white font-semibold text-xs sm:text-sm border border-white/20 flex items-center gap-2 transition-all cursor-pointer hover:scale-105 backdrop-blur-md"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">link</span>
+                    <span>Paste YouTube URL</span>
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FF0000]/15 border border-[#FF0000]/30 text-[#FF4D4D] text-xs font-semibold animate-pulse">
+                <span className="w-2 h-2 rounded-full bg-[#FF0000]"></span>
+                <span>Room Ready • Waiting for Host to Select Video</span>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Autoplay Speaker Enable Pop-Up Modal Overlay */}

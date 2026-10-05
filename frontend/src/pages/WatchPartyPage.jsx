@@ -107,8 +107,8 @@ export default function WatchPartyPage() {
     );
   }
 
-  const currentVideoId = room?.videoId || room?.currentVideoId || 'GG1_DsScm6U';
-  const isPlaying = room?.isPlaying ?? true;
+  const currentVideoId = room?.videoId !== undefined ? room.videoId : (room?.currentVideoId !== undefined ? room.currentVideoId : null);
+  const isPlaying = room?.isPlaying ?? false;
   const currentTime = room?.currentTime || 0;
 
   return (
@@ -130,6 +130,7 @@ export default function WatchPartyPage() {
               isPlaying={isPlaying}
               currentTime={currentTime}
               onOpenSearch={() => setIsSearchOpen(true)}
+              onOpenPasteUrl={() => setIsPasteUrlOpen(true)}
             />
 
             <VideoInfoRow 
