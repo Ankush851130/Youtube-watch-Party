@@ -4,93 +4,93 @@ import axios from 'axios';
 const CURATED_YOUTUBE_LIBRARY = [
   {
     videoId: 'nno6AiEAORA',
-    title: 'Recommended Track 1',
+    title: 'Chalre Chalre Waal | Female Version | Tu Sanwal Phul Kasturi',
     thumbnail: 'https://img.youtube.com/vi/nno6AiEAORA/hqdefault.jpg',
-    channelTitle: 'YouTube Music',
+    channelTitle: 'Kunwar Brar',
     duration: '3:45',
     views: 'Featured',
-    category: 'Recommendation #1'
+    category: 'Trending Music'
   },
   {
     videoId: '7NCNynJCmKk',
-    title: 'Recommended Track 2',
+    title: 'LAAL PARI | Yo Yo Honey Singh | Housefull 5',
     thumbnail: 'https://img.youtube.com/vi/7NCNynJCmKk/hqdefault.jpg',
-    channelTitle: 'YouTube Music',
+    channelTitle: 'Dimension BeatX',
     duration: '3:45',
     views: 'Featured',
-    category: 'Recommendation #2'
+    category: 'Trending Music'
   },
   {
     videoId: 'W8x6Dwyj0-A',
-    title: 'Recommended Track 3',
+    title: 'MANIAC (Official Video) - Yo Yo Honey Singh | Esha Gupta | Glory',
     thumbnail: 'https://img.youtube.com/vi/W8x6Dwyj0-A/hqdefault.jpg',
-    channelTitle: 'YouTube Music',
+    channelTitle: 'T-Series',
     duration: '3:45',
     views: 'Featured',
-    category: 'Recommendation #3'
+    category: 'Trending Music'
   },
   {
     videoId: 'OGoetWCRVyM',
-    title: 'Recommended Track 4',
+    title: 'Jatt Diyan Tauran (Official Video) | Gippy Grewal',
     thumbnail: 'https://img.youtube.com/vi/OGoetWCRVyM/hqdefault.jpg',
-    channelTitle: 'YouTube Music',
+    channelTitle: 'Touchwood Productions',
     duration: '3:45',
     views: 'Featured',
-    category: 'Recommendation #4'
+    category: 'Trending Music'
   },
   {
     videoId: 'uaP6KyJzbJ8',
-    title: 'Recommended Track 5',
+    title: 'Modern Talking - Cheri Cheri Lady',
     thumbnail: 'https://img.youtube.com/vi/uaP6KyJzbJ8/hqdefault.jpg',
-    channelTitle: 'YouTube Music',
+    channelTitle: 'Downtown Sounds',
     duration: '3:45',
     views: 'Featured',
-    category: 'Recommendation #5'
+    category: 'Pop Classic'
   },
   {
     videoId: 'kt9IiIWRVnU',
-    title: 'Recommended Track 6',
+    title: 'PAYAL - Yo Yo Honey Singh | Nora Fatehi | Paradox | Glory',
     thumbnail: 'https://img.youtube.com/vi/kt9IiIWRVnU/hqdefault.jpg',
-    channelTitle: 'YouTube Music',
+    channelTitle: 'T-Series',
     duration: '3:45',
     views: 'Featured',
-    category: 'Recommendation #6'
+    category: 'Trending Music'
   },
   {
     videoId: 's4jdHWyj5WE',
-    title: 'Recommended Track 7',
+    title: 'LAL MERI PAT | Qawwali | Mehfil-e-Sama\'a Live',
     thumbnail: 'https://img.youtube.com/vi/s4jdHWyj5WE/hqdefault.jpg',
-    channelTitle: 'YouTube Music',
+    channelTitle: 'Irfan Erooth',
     duration: '3:45',
     views: 'Featured',
-    category: 'Recommendation #7'
+    category: 'Qawwali'
   },
   {
     videoId: 'ujtZestMWE0',
-    title: 'Recommended Track 8',
+    title: 'Ye Shaam Mastani (Slowed + Reverb)',
     thumbnail: 'https://img.youtube.com/vi/ujtZestMWE0/hqdefault.jpg',
-    channelTitle: 'YouTube Music',
+    channelTitle: 'Reverbae',
     duration: '3:45',
     views: 'Featured',
-    category: 'Recommendation #8'
+    category: 'Slowed & Reverb'
   },
   {
     videoId: 'vRjaGgDsWSo',
-    title: 'Recommended Track 9',
+    title: 'Casa Tupka Anthemo - Yo Yo Honey Singh feat. Priyanshi',
     thumbnail: 'https://img.youtube.com/vi/vRjaGgDsWSo/hqdefault.jpg',
-    channelTitle: 'YouTube Music',
+    channelTitle: 'Yo Yo Honey Singh',
     duration: '3:45',
     views: 'Featured',
-    category: 'Recommendation #9'
+    category: 'Trending Music'
   },
   {
     videoId: 'xjf_XuRWTcQ',
-    title: 'Recommended Track 10',
+    title: 'Saadgi To Humari Zara Dekhiye - Akanksha Grover',
     thumbnail: 'https://img.youtube.com/vi/xjf_XuRWTcQ/hqdefault.jpg',
-    channelTitle: 'YouTube Music',
+    channelTitle: 'Humara Music',
     duration: '3:45',
     views: 'Featured',
-    category: 'Recommendation #10'
+    category: 'Acoustic / Live'
   }
 ];
 
