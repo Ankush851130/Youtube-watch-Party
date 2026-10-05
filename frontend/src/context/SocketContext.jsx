@@ -105,12 +105,19 @@ export function SocketProvider({ children }) {
     });
 
     newSocket.on('user_left', (data) => {
-      setRoom(prev => prev ? { 
-        ...prev, 
-        hostId: data.hostId || prev.hostId, 
-        participants: data.participants 
-      } : null);
-      addToast(data.message || `${data.username} left the room`, 'info');
+      const username = data.username || 'A participant';
+      setRoom(prev => {
+        if (!prev) return null;
+        const updatedParticipants = data.participants
+          ? data.participants
+          : (prev.participants || []).filter(p => p.userId !== data.userId);
+        return { 
+          ...prev, 
+          hostId: data.hostId || prev.hostId, 
+          participants: updatedParticipants 
+        };
+      });
+      addToast(`👋 ${username} has left the room`, 'warning');
     });
 
     newSocket.on('play', (data) => {

@@ -450,16 +450,20 @@ class RoomManager {
     const participant = room.participants.get(userId);
     if (!participant) return null;
 
-    participant.socketId = null;
+    // Delete participant from room participants map
+    room.participants.delete(userId);
 
     // Check host migration if host leaves permanently
     if (userId === room.hostId) {
       // Find another active or moderator participant to promote as Host
-      const remaining = Array.from(room.participants.values()).filter(p => p.userId !== userId);
+      const remaining = Array.from(room.participants.values());
       if (remaining.length > 0) {
         const nextHost = remaining.find(p => p.role === 'MODERATOR') || remaining[0];
         nextHost.role = 'HOST';
         room.hostId = nextHost.userId;
+      } else {
+        // If room is empty, remove room from active rooms
+        this.rooms.delete(roomId);
       }
     }
 
