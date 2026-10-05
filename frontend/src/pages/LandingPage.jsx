@@ -8,7 +8,7 @@ export default function LandingPage() {
   const { setUser } = useSocket();
 
   const [activeTab, setActiveTab] = useState('create'); // 'create' | 'join'
-  const [createRoomName, setCreateRoomName] = useState('Friday Movie Night');
+  const [createRoomName, setCreateRoomName] = useState('');
   const [createUsername, setCreateUsername] = useState('');
   const [joinCodeInput, setJoinCodeInput] = useState('');
   const [joinUsername, setJoinUsername] = useState('');
@@ -41,7 +41,7 @@ export default function LandingPage() {
     setErrorMsg('');
     setIsSubmitting(true);
     try {
-      const res = await createRoomApi(createRoomName, createUsername.trim());
+      const res = await createRoomApi(createRoomName.trim() || 'Watch Party', createUsername.trim());
       if (res.success && res.data) {
         setUser({
           userId: res.data.userId,
@@ -111,11 +111,6 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <main className="flex-1 max-w-[1400px] mx-auto px-6 py-12 flex flex-col items-center justify-center text-center">
-        {/* Glow Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FF0000]/10 border border-[#FF0000]/25 text-[#FF4D4D] text-xs font-semibold tracking-wide mb-6 animate-pulse">
-          <span className="w-2 h-2 rounded-full bg-[#FF0000]"></span>
-          <span>Real-Time WebSocket Synchronization</span>
-        </div>
 
         <h1 className="font-display text-4xl sm:text-6xl font-extrabold tracking-tight text-white max-w-4xl leading-tight">
           Watch YouTube together, <br />

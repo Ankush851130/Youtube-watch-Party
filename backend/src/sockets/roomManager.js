@@ -22,7 +22,7 @@ class RoomManager {
     const demoRoom = {
       roomId,
       roomCode: demoCode,
-      roomName: 'Friday Movie Night',
+      roomName: 'Watch Party',
       hostId,
       currentVideoId: 'GG1_DsScm6U',
       currentVideoTitle: 'Planet Earth III — Mountain Dynasties',
