@@ -1,0 +1,1259 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<meta content="web_standard" name="shell-type">
+<title>WATCHTOGETHER — Watch YouTube together, in perfect sync.</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Sora:wght@400;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "theater-bg": "#0A0A0A",
+            "theater-surface": "#121212",
+            "theater-surface-hover": "#181818",
+            "theater-surface-elevated": "#202020",
+            "theater-nav": "#0E0E0E",
+            "yt-red": "#FF0000",
+            "yt-red-hover": "#CC0000",
+            "yt-red-soft": "rgba(255, 0, 0, 0.14)",
+            "emerald-sync": "#22C55E"
+          },
+          fontFamily: {
+            sans: ["Plus Jakarta Sans", "sans-serif"],
+            display: ["Sora", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    @layer base {
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #0A0A0A;
+        color: #FFFFFF;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-image: 
+          radial-gradient(ellipse at 35% 25%, rgba(255, 0, 0, 0.07) 0%, transparent 60%),
+          radial-gradient(circle at 85% 35%, rgba(34, 197, 94, 0.03) 0%, transparent 40%);
+        background-attachment: fixed;
+      }
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.22); }
+    
+    @keyframes floatUpFade {
+      0% { transform: translateY(0px) scale(0.85); opacity: 0; }
+      20% { opacity: 1; transform: translateY(-16px) scale(1.15); }
+      75% { opacity: 0.9; }
+      100% { transform: translateY(-75px) scale(1); opacity: 0; }
+    }
+    .animate-float-reaction {
+      animation: floatUpFade 2.6s ease-out infinite;
+    }
+  </style>
+</head>
+<body class="bg-theater-bg text-[#FFFFFF] min-h-screen flex flex-col selection:bg-[#FF0000]/30 selection:text-white antialiased">
+<!-- ================= NAVBAR COMPONENT ================= -->
+<header class="sticky top-0 z-40 w-full bg-[#0E0E0E]/95 backdrop-blur-xl border-b border-white/[0.08] transition-all">
+<div class="max-w-[1780px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+<!-- Brand Logo -->
+<div class="flex items-center gap-3">
+<a class="flex items-center gap-2.5 group" href="#">
+<div class="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg shadow-[#FF0000]/25 group-hover:scale-105 transition-transform duration-300 overflow-hidden">
+<img alt="WatchTogether Clean Brand Logo" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1VzCaPI87bTNszLKc3GYcSIRraH_ERsh4XrsdE01vDpMb0qdAipq67FsNyF7hK1og8p7BvmmgkLb3MxB15NI3wacrAJsbY9oIdNOxot9y8EXaHPXFgWRcLhoFBtI18CMKTvgnPWGImNnzHssTqRzMj_Pe4ebuSJ21d0F7Ps_xQFGEO_4IEDKUdpoMiPQobFlDhxt3k3UDSLPS5OWpsM1zQx8ziH-Kol-NSBcn2ChgiUNgwenrdx9lB6ABmr">
+</div>
+<div class="flex flex-col">
+<span class="font-display font-extrabold tracking-tight text-base text-white flex items-center gap-1.5">
+              WATCHTOGETHER
+              <span class="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-[#FF0000]/10 text-[#FF4D4D] border border-[#FF0000]/20 uppercase tracking-widest hidden sm:inline">Cinema</span>
+</span>
+<span class="text-[11px] text-[#AAAAAA] -mt-0.5 tracking-tight font-medium hidden md:inline">Sync YouTube instantly</span>
+</div>
+</a>
+</div>
+<!-- Center Room Info Capsule -->
+<div class="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] backdrop-blur-md">
+<span class="w-2 h-2 rounded-full bg-[#22C55E] shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse"></span>
+<span class="text-base font-semibold text-white max-w-[160px] sm:max-w-[260px] truncate">Friday Movie Night</span>
+<span class="text-[#717171] hidden sm:inline">•</span>
+<span class="text-xs font-mono font-medium text-[#AAAAAA] bg-white/[0.05] px-2 py-0.5 rounded-full hidden sm:flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px] text-[#AAAAAA]">group</span>
+<span class="" id="navWatchingCount">4 watching</span>
+</span>
+</div>
+<!-- Right Header Actions -->
+<div class="flex items-center gap-2.5">
+<!-- Room Code Pill -->
+<button class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-300 hover:text-white transition-all text-xs font-mono group" id="copyCodeNavBtn" title="Copy Room Passcode">
+<span class="text-[#717171] text-[10px] uppercase font-bold tracking-wider">CODE</span>
+<span class="text-[#FF8080] font-semibold tracking-wider">X7K92P</span>
+<span class="material-symbols-outlined text-[14px] text-[#AAAAAA] group-hover:text-[#FF8080] transition-colors">content_copy</span>
+</button>
+<!-- Share Button -->
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FF0000] hover:bg-[#CC0000] text-white font-medium text-xs shadow-md shadow-[#FF0000]/25 transition-all" id="navShareBtn">
+<span class="material-symbols-outlined text-[15px]">ios_share</span>
+<span class="hidden sm:inline">Share</span>
+</button>
+<div class="h-4 w-px bg-white/10 mx-0.5 hidden sm:block"></div>
+<!-- User Profile Pill -->
+<div class="flex items-center gap-2 pl-1">
+<div class="w-8 h-8 rounded-full bg-[#FF0000] flex items-center justify-center text-white text-xs font-bold ring-2 ring-[#FF0000]/30 shadow-sm shadow-[#FF0000]/30">
+            A
+          </div>
+<div class="flex-col text-left hidden lg:flex">
+<span class="text-xs font-semibold text-slate-200 leading-tight">Ankush</span>
+<span class="text-[10px] text-[#FF4D4D] font-bold uppercase tracking-wider">👑 Host</span>
+</div>
+</div>
+<!-- More Menu -->
+<div class="relative">
+<button class="p-1.5 rounded-lg text-[#AAAAAA] hover:text-white hover:bg-white/[0.06] transition-colors" id="headerMoreBtn" title="More Options">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+<!-- More Dropdown -->
+<div class="hidden absolute right-0 mt-2 w-48 rounded-xl bg-[#181818] border border-white/10 shadow-2xl p-1.5 z-50 text-xs" id="headerDropdown">
+<button class="w-full flex items-center gap-2 px-2.5 py-2 text-slate-300 hover:text-white hover:bg-white/[0.06] rounded-lg" id="dropdownInviteBtn">
+<span class="material-symbols-outlined text-[16px] text-[#FF4D4D]">person_add</span>
+<span class="">Invite Friends</span>
+</button>
+<button class="w-full flex items-center gap-2 px-2.5 py-2 text-slate-300 hover:text-white hover:bg-white/[0.06] rounded-lg" id="dropdownRoomSettingsBtn">
+<span class="material-symbols-outlined text-[16px] text-[#AAAAAA]">tune</span>
+<span class="">Room Settings</span>
+</button>
+<div class="h-px bg-white/10 my-1"></div>
+<button class="w-full flex items-center gap-2 px-2.5 py-2 text-red-400 hover:bg-[#DC2626]/10 rounded-lg" id="dropdownLeaveBtn">
+<span class="material-symbols-outlined text-[16px]">logout</span>
+<span class="">Leave Room</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Secondary Sleek Interactive Demo Role Bar -->
+<div class="border-t border-white/[0.08] bg-[#0E0E0E]/95 px-4 sm:px-6 lg:px-8 py-2.5 backdrop-blur-md">
+  <div class="max-w-[1780px] mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+    <!-- Left: Host Search Badge / Info -->
+    <div class="hidden lg:flex items-center gap-2 shrink-0 select-none">
+      <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FF0000]/10 border border-[#FF0000]/25 text-[#FF4D4D] text-xs font-semibold">
+        <span class="material-symbols-outlined text-[15px]">smart_display</span>
+        <span class="">Host Media Search</span>
+      </div>
+      <span class="text-[11px] text-[#717171] font-mono">Sync queue &amp; instant play</span>
+    </div>
+
+    <!-- Center: Prominent YouTube-Style Search Box -->
+    <div class="w-full max-w-2xl flex items-center">
+      <div class="w-full flex items-center bg-[#121212] border border-white/15 rounded-full overflow-hidden hover:border-white/30 focus-within:border-[#FF0000] focus-within:ring-1 focus-within:ring-[#FF0000] transition-all shadow-inner group">
+        <div class="pl-4 pr-2 text-[#717171] flex items-center pointer-events-none group-focus-within:text-[#FF4D4D]">
+          <span class="material-symbols-outlined text-[20px]">search</span>
+        </div>
+        <input type="text" placeholder="Search songs, videos, artists, or paste link..." class="w-full bg-transparent py-2 text-xs sm:text-sm text-white placeholder:text-[#717171] outline-none font-normal cursor-pointer selection:bg-[#FF0000]/30 selection:text-white" id="bannerYtSearchInput" onclick="document.getElementById('modalChangeVideo').classList.remove('hidden'); document.getElementById('modalChangeVideo').classList.add('flex'); document.getElementById('ytSearchInput').focus();" readonly="">
+        <button type="button" class="h-9 px-4 sm:px-5 bg-[#202020] hover:bg-[#FF0000] border-l border-white/10 text-slate-300 hover:text-white flex items-center justify-center transition-colors group-hover:bg-[#202020]" title="Search YouTube" onclick="document.getElementById('modalChangeVideo').classList.remove('hidden'); document.getElementById('modalChangeVideo').classList.add('flex');">
+          <span class="material-symbols-outlined text-[20px]">search</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Right: Quick Genre / Suggestion Chips -->
+    <div class="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto justify-start md:justify-end shrink-0 py-0.5">
+      <button type="button" onclick="document.getElementById('modalChangeVideo').classList.remove('hidden'); document.getElementById('modalChangeVideo').classList.add('flex');" class="px-2.5 py-1 rounded-full bg-white/[0.06] hover:bg-white/10 border border-white/[0.08] text-xs font-medium text-slate-200 hover:text-white transition-all shrink-0 flex items-center gap-1 active:scale-95">
+        <span class="">🎵</span> Music
+      </button>
+      <button type="button" onclick="document.getElementById('modalChangeVideo').classList.remove('hidden'); document.getElementById('modalChangeVideo').classList.add('flex');" class="px-2.5 py-1 rounded-full bg-white/[0.06] hover:bg-white/10 border border-white/[0.08] text-xs font-medium text-slate-200 hover:text-white transition-all shrink-0 flex items-center gap-1 active:scale-95">
+        <span class="">🎬</span> Trailers
+      </button>
+      <button type="button" onclick="document.getElementById('modalChangeVideo').classList.remove('hidden'); document.getElementById('modalChangeVideo').classList.add('flex');" class="px-2.5 py-1 rounded-full bg-white/[0.06] hover:bg-white/10 border border-white/[0.08] text-xs font-medium text-slate-200 hover:text-white transition-all shrink-0 flex items-center gap-1 active:scale-95">
+        <span class="">🔥</span> Trending
+      </button>
+      <button type="button" onclick="document.getElementById('modalChangeVideo').classList.remove('hidden'); document.getElementById('modalChangeVideo').classList.add('flex');" class="hidden sm:flex px-2.5 py-1 rounded-full bg-white/[0.06] hover:bg-white/10 border border-white/[0.08] text-xs font-medium text-slate-200 hover:text-white transition-all shrink-0 active:scale-95">
+        Arijit Singh
+      </button>
+      <button type="button" onclick="document.getElementById('modalChangeVideo').classList.remove('hidden'); document.getElementById('modalChangeVideo').classList.add('flex');" class="hidden sm:flex px-2.5 py-1 rounded-full bg-white/[0.06] hover:bg-white/10 border border-white/[0.08] text-xs font-medium text-slate-200 hover:text-white transition-all shrink-0 active:scale-95">
+        Lofi Beats
+      </button>
+    </div>
+  </div>
+</div>
+</header>
+<!-- ================= MAIN DIGITAL THEATER STAGE ================= -->
+<main class="flex-1 w-full max-w-[1780px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- ================= HERO VIDEO PLAYER SECTION (70-75% width on desktop) ================= -->
+<section class="lg:col-span-8 xl:col-span-8 flex flex-col gap-5 min-w-0">
+<!-- Cinematic Video Frame with Ambient Glow -->
+<div class="relative w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-2xl shadow-black/90 border border-white/[0.08] group select-none transition-all">
+<!-- Nature Documentary Frame from DataStore -->
+<img alt="Snow leopard walking on mountain ridge at sunset in 4K" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.01]" src="https://lh3.googleusercontent.com/aida/AEtjO1WPy0_78Oyl_GZZ7s18EZN_IjcQ56mBJymcrHw73TKT-bWJ5QfKEbjj1p17qoUI_b2XmoEd5o77Cf-gZp5gZG3eueKeKHo74Dmd2cJmMA4xzqUHlAzWg8KmP0acqG7HluXuBYgz90EAA46nM7u_jd9YmTUyC9UkQPYvgHmoW4UCi0xpcUNWGaen8-GdSf1AYW-54sjl7Y0YMl-77YcPgARefE2Tk6AD1N9t2297HhJlhseR8jedt2aBeB4i">
+<!-- Subtle Top Gradient Vignette for Readability -->
+<div class="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/80 via-black/30 to-transparent pointer-events-none"></div>
+<!-- Subtle Bottom Gradient Vignette for Video Controls -->
+<div class="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/95 via-black/60 to-transparent pointer-events-none"></div>
+<!-- Top-Left Source Bug -->
+<div class="absolute top-4 left-4 flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-xs font-medium">
+<span class="w-2.5 h-2.5 rounded-full bg-[#FF0000] animate-pulse"></span>
+<span class="text-white font-semibold">YouTube 4K</span>
+<span class="text-[#AAAAAA] font-mono text-[11px]">• Nature's Edge Live</span>
+</div>
+<!-- Top-Right Live Sync Telemetry Pill -->
+<div class="absolute top-4 right-4 flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#22C55E]/30 text-xs shadow-lg"><span class="w-2 h-2 rounded-full bg-[#22C55E] shadow-[0_0_8px_#22c55e] animate-pulse"></span>
+<span class="text-[#4ade80] font-medium text-xs tracking-wide">Synced</span></div>
+<!-- Floating Reaction Overlay (Soft animated floating reaction stream) -->
+<div class="absolute bottom-24 right-6 pointer-events-none flex flex-col items-center gap-2 z-20">
+<div class="animate-float-reaction text-2xl select-none" style="animation-delay: 0s;">❤️</div>
+<div class="animate-float-reaction text-2xl select-none" style="animation-delay: 0.8s;">🔥</div>
+<div class="animate-float-reaction text-xl select-none" style="animation-delay: 1.5s;">😂</div>
+<div class="flex flex-col items-center" id="dynamicEmojiSpawn"></div>
+</div>
+<!-- Center Pause / Play Ripple Indicator -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 scale-75 transition-all duration-300" id="centerPlayIndicator">
+<div class="w-20 h-20 rounded-full bg-black/60 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shadow-2xl">
+<span class="material-symbols-outlined text-[44px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+<!-- ================= AMBIENT FLOATING CONTROLS BAR ================= -->
+<div class="absolute bottom-3 inset-x-3 sm:bottom-4 sm:inset-x-4 bg-[#121212]/90 backdrop-blur-xl border border-white/[0.08] rounded-xl px-4 py-2.5 flex flex-col gap-2 shadow-2xl transition-opacity duration-300">
+<!-- Custom YouTube Progress Rail with Peer Sync Avatars -->
+<div class="relative w-full py-1 cursor-pointer group/rail flex items-center" id="scrubberRail">
+<div class="w-full h-1.5 bg-white/15 rounded-full overflow-hidden relative">
+<!-- Buffer track -->
+<div class="absolute left-0 top-0 bottom-0 w-[78%] bg-white/20 rounded-full"></div>
+<!-- Played track -->
+<div class="absolute left-0 top-0 bottom-0 w-[51%] bg-[#FF0000] rounded-full" id="playedTrack"></div>
+</div>
+<!-- Scrubber Thumb -->
+<div class="absolute left-[51%] -top-1 w-3.5 h-3.5 bg-[#FF0000] rounded-full shadow-[0_0_12px_rgba(255,0,0,0.9)] ring-2 ring-black pointer-events-none transition-transform group-hover/rail:scale-125" id="scrubberThumb"></div>
+<!-- Peer position markers on timeline -->
+<div class="absolute left-[49%] -top-0.5 w-2 h-2 rounded-full bg-[#22C55E] ring-1 ring-black" title="Rahul at 23:40"></div>
+<div class="absolute left-[51%] -top-0.5 w-2 h-2 rounded-full bg-amber-400 ring-1 ring-black" title="Rohit syncing"></div>
+<!-- Tooltip on hover -->
+<div class="absolute left-[51%] -top-8 -translate-x-1/2 bg-black/90 px-2 py-0.5 rounded text-[11px] font-mono text-slate-200 border border-white/10 hidden group-hover/rail:block pointer-events-none">
+                24:36
+              </div>
+</div>
+<!-- Lower Controls Toolbar -->
+<div class="flex items-center justify-between gap-3 text-slate-300">
+<!-- Left controls -->
+<div class="flex items-center gap-3"><button class="w-9 h-9 rounded-full bg-[#FF0000] hover:bg-[#CC0000] text-white flex items-center justify-center transition-all shadow-md shadow-[#FF0000]/30 hover:scale-105 active:scale-95" id="playbackToggleBtn" title="Play / Pause (Space)">
+<span class="material-symbols-outlined text-[22px]" id="playPauseIcon" style="font-variation-settings: 'FILL' 1;">pause</span>
+</button>
+<button class="p-1.5 hover:text-white text-slate-300 transition-colors" id="rewind10Btn" title="Rewind 10 seconds">
+<span class="material-symbols-outlined text-[22px]">replay_10</span>
+</button>
+<button class="p-1.5 hover:text-white text-slate-300 transition-colors" id="forward10Btn" title="Forward 10 seconds">
+<span class="material-symbols-outlined text-[22px]">forward_10</span>
+</button>
+<div class="flex items-center gap-2 group/volume">
+<button class="p-1.5 hover:text-white text-slate-300 transition-colors" id="volumeToggleBtn" title="Mute/Unmute">
+<span class="material-symbols-outlined text-[22px]" id="volumeIcon">volume_up</span>
+</button>
+<div class="w-16 sm:w-24 h-1.5 bg-white/20 rounded-full overflow-hidden cursor-pointer">
+<div class="w-4/5 h-full bg-[#FF0000] hover:bg-[#CC0000] transition-colors rounded-full"></div>
+</div>
+</div>
+<div class="font-mono text-sm text-[#AAAAAA] pl-2 flex items-center gap-1.5 select-none">
+<span class="text-white font-bold" id="timeCurrent">24:36</span>
+<span class="text-[#717171]">/</span>
+<span class="font-medium" id="timeDuration">48:12</span>
+</div></div>
+<!-- Right controls -->
+<div class="flex items-center gap-2"><span class="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-white/10 text-white tracking-wide">4K HDR</span>
+<button class="p-1.5 hover:text-white transition-colors text-slate-300" title="Subtitles (CC)">
+<span class="material-symbols-outlined text-[22px]">closed_caption</span>
+</button>
+<button class="p-1.5 hover:text-white transition-colors text-slate-300" title="Settings">
+<span class="material-symbols-outlined text-[22px]">settings</span>
+</button>
+<button class="p-1.5 hover:text-white transition-colors hidden md:block text-slate-300" id="theaterModeToggleBtn" title="Theater Mode">
+<span class="material-symbols-outlined text-[22px]">crop_landscape</span>
+</button>
+<button class="p-1.5 hover:text-white transition-colors text-slate-300" id="fullscreenToggleBtn" title="Fullscreen">
+<span class="material-symbols-outlined text-[24px]">fullscreen</span>
+</button></div>
+</div>
+</div>
+</div>
+<!-- ================= OPEN VIDEO INFO & ACTION ROW (No Boxed Card) ================= -->
+<div class="flex flex-col gap-4 pt-1">
+<!-- Title & Subtitle + Sync Indicator -->
+<div class="flex flex-col md:flex-row md:items-baseline justify-between gap-3 pb-1 border-b border-white/[0.08]"><div class="space-y-1.5">
+<h1 class="font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+    Planet Earth III — Mountain Dynasties
+  </h1>
+<p class="text-sm text-[#AAAAAA] font-normal flex flex-wrap items-center gap-2.5">
+<span class="text-slate-200 font-medium">Playing together with 4 friends</span>
+<span class="text-[#717171]">•</span>
+<span class="text-[#FF8080] font-semibold">Ultra HD 4K</span>
+<span class="text-[#717171]">•</span>
+<span class="text-slate-300">BBC Earth</span>
+</p>
+</div>
+<div class="flex items-center gap-2 shrink-0 self-start md:self-auto">
+<div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#22C55E]/10 border border-[#22C55E]/20 text-[#22C55E] text-xs font-semibold tracking-wide shadow-sm">
+<span class="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse"></span>
+<span class="">Synced</span>
+</div>
+</div></div>
+<!-- Clean Action Bar & Live Emoji Triggers -->
+<div class="flex flex-wrap items-center justify-between gap-3">
+<!-- Left Action Cluster: Change Video, Invite, Share -->
+<div class="flex flex-wrap items-center gap-2.5"><!-- Host/Mod Media Controls Cluster -->
+<div class="flex flex-wrap items-center gap-2.5" id="hostMediaControlsGroup">
+<button class="h-11 flex items-center gap-2 px-5 rounded-xl bg-[#FF0000] hover:bg-[#CC0000] text-white font-semibold text-sm shadow-md shadow-[#FF0000]/25 hover:scale-105 active:scale-95 transition-all group" id="openSearchModalBtn" title="Search YouTube">
+<span class="material-symbols-outlined text-[20px]">search</span>
+<span class="">Search YouTube</span>
+</button>
+<button class="h-11 flex items-center gap-2 px-4 rounded-xl bg-[#181818] hover:bg-[#202020] border border-white/10 text-slate-100 hover:text-white font-medium text-sm transition-all hover:scale-105 active:scale-95" id="openPasteUrlModalBtn" title="Paste YouTube video or livestream link">
+<span class="material-symbols-outlined text-[18px] text-[#FF4D4D]">link</span>
+<span class="">Paste URL</span>
+</button>
+</div>
+<!-- Common Room Actions -->
+<button class="h-11 flex items-center gap-2 px-4 rounded-xl bg-[#181818] hover:bg-[#202020] border border-white/10 text-slate-100 hover:text-white font-medium text-sm transition-all" id="copyInviteLinkBtn">
+<span class="material-symbols-outlined text-[18px] text-[#AAAAAA]">content_copy</span>
+<span class="hidden sm:inline">Copy Link</span>
+</button>
+<button class="h-11 flex items-center gap-2 px-4 rounded-xl bg-[#181818] hover:bg-[#202020] border border-white/10 text-slate-100 hover:text-white font-medium text-sm transition-all" id="openShareModalMainBtn">
+<span class="material-symbols-outlined text-[18px] text-[#FF4D4D]">ios_share</span>
+<span class="">Share Room</span>
+</button>
+<button class="h-11 flex items-center gap-2 px-4 rounded-xl text-[#AAAAAA] hover:text-[#DC2626] hover:bg-[#DC2626]/10 font-medium text-sm transition-all" id="leaveRoomBtn">
+<span class="material-symbols-outlined text-[18px]">logout</span>
+<span class="">Leave</span>
+</button>
+<!-- Locked status pill for participants -->
+<div class="hidden h-11 items-center gap-2 px-3.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-mono text-[#AAAAAA]" id="participantControlsNotice">
+<span class="material-symbols-outlined text-[16px] text-amber-400">lock</span>
+<span class="">Playback locked to Host</span>
+</div></div>
+<!-- Quick Reaction Buttons Bar for Viewers -->
+<div class="flex items-center gap-1 bg-white/[0.03] border border-white/[0.08] p-1 rounded-xl">
+<span class="text-[10px] uppercase font-bold text-[#717171] px-2 font-mono hidden sm:inline">React:</span>
+<button class="emoji-btn hover:scale-125 active:scale-95 transition-transform p-1.5 text-base sm:text-lg rounded-lg hover:bg-white/10" data-emoji="❤️" title="Love">❤️</button>
+<button class="emoji-btn hover:scale-125 active:scale-95 transition-transform p-1.5 text-base sm:text-lg rounded-lg hover:bg-white/10" data-emoji="😂" title="Laugh">😂</button>
+<button class="emoji-btn hover:scale-125 active:scale-95 transition-transform p-1.5 text-base sm:text-lg rounded-lg hover:bg-white/10" data-emoji="👍" title="Thumbs Up">👍</button>
+<button class="emoji-btn hover:scale-125 active:scale-95 transition-transform p-1.5 text-base sm:text-lg rounded-lg hover:bg-white/10" data-emoji="😮" title="Wow">😮</button>
+<button class="emoji-btn hover:scale-125 active:scale-95 transition-transform p-1.5 text-base sm:text-lg rounded-lg hover:bg-white/10" data-emoji="🔥" title="Fire">🔥</button>
+</div>
+</div>
+<!-- Secondary Preview Quick-Triggers for Interactive Review -->
+<div class="pt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-[#717171] border-t border-white/[0.08]"><div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-[#FF4D4D]">tune</span>
+<span class="">Interactive Dialog Previews:</span>
+</div>
+<div class="flex flex-wrap items-center gap-1.5">
+<button class="px-2.5 py-1 rounded bg-white/[0.03] hover:bg-white/[0.08] text-white font-medium transition-colors" id="previewSearchModalBtn">Search YouTube</button>
+<button class="px-2.5 py-1 rounded bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 transition-colors" id="previewPasteUrlModalBtn">Paste URL</button>
+<button class="px-2.5 py-1 rounded bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 transition-colors" id="previewRoleModalBtn">Role Management</button>
+<button class="px-2.5 py-1 rounded bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 transition-colors" id="previewShareModalBtn">Share Dialog</button>
+<button class="px-2.5 py-1 rounded bg-white/[0.03] hover:bg-[#FF0000]/15 text-[#FF8080] transition-colors" id="toggleEmptyStateBtn">Toggle Empty Room</button>
+</div></div>
+</div>
+</section>
+<!-- ================= SECONDARY SIDEBAR: PEOPLE & CHAT ================= -->
+<aside class="lg:col-span-4 xl:col-span-4 flex flex-col bg-[#121212] border border-white/[0.08] rounded-2xl shadow-xl overflow-hidden min-h-[580px]">
+<!-- Compact Clean Tabs -->
+<div class="flex items-center p-2 bg-[#0E0E0E]/90 border-b border-white/[0.08]">
+<button class="flex-1 py-2 px-3 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 bg-white/[0.08] text-white shadow-sm transition-all" id="sidebarTabPeople">
+<span class="material-symbols-outlined text-[16px] text-[#FF4D4D]">group</span>
+<span class="">People (<span class="" id="peopleCountTab">4</span>)</span>
+</button>
+<button class="flex-1 py-2 px-3 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 text-[#AAAAAA] hover:text-white transition-all" id="sidebarTabChat">
+<span class="material-symbols-outlined text-[16px]">chat_bubble</span>
+<span class="">Chat</span>
+</button>
+</div>
+<!-- ================= TAB CONTENT 1: PEOPLE (4 Watching) ================= -->
+<div class="flex-1 flex flex-col p-4 justify-between" id="peopleTabPanel">
+<div class="space-y-4">
+<!-- Header status row -->
+<div class="flex items-center justify-between text-xs pb-1 border-b border-white/[0.08]">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-[#22C55E]"></span>
+<span class="font-semibold text-slate-200" id="peopleSectionTitle">People • 4 watching</span>
+</div>
+<span class="text-[#717171] font-mono text-[11px]">Room Limit: 50</span>
+</div>
+<!-- Users List -->
+<div class="flex flex-col gap-2.5" id="participantsList"><!-- User 1: Ankush Sharma (Host / You) -->
+<div class="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.03] hover:bg-[#181818] border border-white/[0.06] transition-all">
+<div class="flex items-center gap-3.5 min-w-0">
+<div class="relative w-11 h-11 rounded-full bg-[#FF0000] flex items-center justify-center text-white text-sm font-bold shrink-0 ring-2 ring-[#FF0000]/40 shadow-sm">
+      A
+      <span class="absolute bottom-0 right-0 w-3 h-3 bg-[#22C55E] rounded-full ring-2 ring-[#121212]"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="text-sm font-semibold text-white truncate">Ankush Sharma</span>
+<span class="text-xs text-[#AAAAAA]">(You)</span>
+</div>
+<span class="text-xs font-medium text-[#FF4D4D] flex items-center gap-1 mt-0.5">
+<span class="">👑</span> Host
+      </span>
+</div>
+</div>
+<span class="text-xs font-mono font-medium text-[#AAAAAA] bg-white/[0.05] px-2.5 py-1 rounded-md border border-white/[0.06]">
+    Host
+  </span>
+</div>
+<!-- User 2: Rahul Sharma (Moderator) -->
+<div class="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.02] hover:bg-[#181818] border border-white/[0.05] transition-all group">
+<div class="flex items-center gap-3.5 min-w-0">
+<div class="relative w-11 h-11 rounded-full bg-[#202020] text-slate-200 border border-white/10 flex items-center justify-center text-sm font-bold shrink-0">
+      R
+      <span class="absolute bottom-0 right-0 w-3 h-3 bg-[#22C55E] rounded-full ring-2 ring-[#121212]"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="text-sm font-semibold text-slate-100 truncate">Rahul Sharma</span>
+<span class="text-xs font-medium text-slate-300 flex items-center gap-1 mt-0.5" id="rahulRoleDisplay">
+<span class="">🛡️</span> Moderator
+      </span>
+</div>
+</div>
+<div class="relative">
+<button class="p-1.5 rounded-lg text-[#AAAAAA] hover:text-white hover:bg-white/10 transition-colors participantMenuToggle" data-role="moderator" data-user="Rahul Sharma" title="Manage Rahul">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+<div class="hidden absolute right-0 mt-1 w-48 rounded-xl bg-[#202020] border border-white/10 shadow-2xl p-1 z-30 text-xs userDropdownMenu">
+<button class="w-full text-left px-3 py-2 text-slate-300 hover:text-white hover:bg-white/[0.06] rounded-lg demoteBtn" data-user="Rahul Sharma">
+        Demote to Participant
+      </button>
+<button class="w-full text-left px-3 py-2 text-[#DC2626] hover:bg-[#DC2626]/10 rounded-lg kickBtn" data-user="Rahul Sharma">
+        Remove from Room
+      </button>
+</div>
+</div>
+</div>
+<!-- User 3: Aman Kumar (Participant) -->
+<div class="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.02] hover:bg-[#181818] border border-white/[0.05] transition-all group">
+<div class="flex items-center gap-3.5 min-w-0">
+<div class="relative w-11 h-11 rounded-full bg-[#202020] text-slate-200 border border-white/10 flex items-center justify-center text-sm font-bold shrink-0">
+      AK
+      <span class="absolute bottom-0 right-0 w-3 h-3 bg-[#22C55E] rounded-full ring-2 ring-[#121212]"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="text-sm font-semibold text-slate-100 truncate">Aman Kumar</span>
+<span class="text-xs text-[#AAAAAA] flex items-center gap-1 mt-0.5">
+<span class="">👤</span> Participant
+      </span>
+</div>
+</div>
+<div class="relative">
+<button class="p-1.5 rounded-lg text-[#AAAAAA] hover:text-white hover:bg-white/10 transition-colors participantMenuToggle" data-role="participant" data-user="Aman Kumar" title="Manage Aman">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+<div class="hidden absolute right-0 mt-1 w-48 rounded-xl bg-[#202020] border border-white/10 shadow-2xl p-1 z-30 text-xs userDropdownMenu">
+<button class="w-full text-left px-3 py-2 text-slate-200 hover:text-white hover:bg-white/[0.06] rounded-lg promoteBtn" data-user="Aman Kumar">
+        Make Moderator
+      </button>
+<button class="w-full text-left px-3 py-2 text-[#DC2626] hover:bg-[#DC2626]/10 rounded-lg kickBtn" data-user="Aman Kumar">
+        Remove from Room
+      </button>
+</div>
+</div>
+</div>
+<!-- User 4: Rohit Gupta (Syncing) -->
+<div class="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.02] hover:bg-[#181818] border border-white/[0.05] transition-all group">
+<div class="flex items-center gap-3.5 min-w-0">
+<div class="relative w-11 h-11 rounded-full bg-[#202020] text-slate-200 border border-white/10 flex items-center justify-center text-sm font-bold shrink-0">
+      RG
+      <span class="absolute bottom-0 right-0 w-3 h-3 bg-amber-400 rounded-full ring-2 ring-[#121212] animate-pulse"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="text-sm font-semibold text-slate-100 truncate">Rohit Gupta</span>
+<span class="text-xs text-amber-400/90 font-mono flex items-center gap-1.5 mt-0.5">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Syncing video...
+      </span>
+</div>
+</div>
+<div class="relative">
+<button class="p-1.5 rounded-lg text-[#AAAAAA] hover:text-white hover:bg-white/10 transition-colors participantMenuToggle" data-role="participant" data-user="Rohit Gupta" title="Manage Rohit">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+<div class="hidden absolute right-0 mt-1 w-48 rounded-xl bg-[#202020] border border-white/10 shadow-2xl p-1 z-30 text-xs userDropdownMenu">
+<button class="w-full text-left px-3 py-2 text-slate-200 hover:text-white hover:bg-white/[0.06] rounded-lg promoteBtn" data-user="Rohit Gupta">
+        Make Moderator
+      </button>
+<button class="w-full text-left px-3 py-2 text-[#DC2626] hover:bg-[#DC2626]/10 rounded-lg kickBtn" data-user="Rohit Gupta">
+        Remove from Room
+      </button>
+</div>
+</div>
+</div></div>
+<!-- Empty Room State Demo (Hidden by default, toggled via test button) -->
+<div class="hidden p-6 text-center flex-col items-center justify-center gap-3 rounded-xl bg-white/[0.02] border border-dashed border-white/10 my-4" id="emptyRoomStateNotice">
+<div class="w-12 h-12 rounded-full bg-[#FF0000]/10 border border-[#FF0000]/20 text-[#FF4D4D] flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">group_off</span>
+</div>
+<div class="space-y-1">
+<h4 class="text-sm font-semibold text-white">You're the only one here</h4>
+<p class="text-xs text-[#AAAAAA] max-w-[220px]">Invite your friends with the room code to start watching synchronized videos.</p>
+</div>
+<button class="mt-1 px-3 py-1.5 bg-[#FF0000] hover:bg-[#CC0000] text-white rounded-lg text-xs font-medium" onclick="document.getElementById('openShareModalMainBtn').click()">
+                Invite Friends Now
+              </button>
+</div>
+</div>
+<!-- Bottom CTA: Invite Friends -->
+<div class="pt-4 mt-auto">
+<button class="w-full h-11 px-4 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-100 hover:text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all group" id="sidebarInviteBtn">
+<span class="material-symbols-outlined text-[20px] text-[#FF4D4D] group-hover:scale-110 transition-transform">person_add</span>
+<span class="">Invite Friends</span>
+</button>
+</div>
+</div>
+<!-- ================= TAB CONTENT 2: CHAT ================= -->
+<div class="hidden flex-1 flex-col p-4 justify-between h-[520px]" id="chatTabPanel">
+<!-- Messages Scroll Area -->
+<div class="flex-1 overflow-y-auto space-y-3.5 pr-1.5 flex flex-col justify-end" id="chatMessagesContainer">
+<!-- Message 1 -->
+<div class="flex items-start gap-2.5">
+<div class="w-7 h-7 rounded-full bg-[#202020] text-slate-300 border border-white/10 flex items-center justify-center text-[11px] font-bold shrink-0">
+                R
+              </div>
+<div class="flex flex-col min-w-0 max-w-[85%]">
+<div class="flex items-center gap-1.5">
+<span class="text-xs font-semibold text-slate-300">Rahul Sharma</span>
+<span class="text-[10px] text-[#717171] font-mono">21:04</span>
+</div>
+<div class="bg-white/[0.04] border border-white/[0.08] rounded-2xl rounded-tl-sm px-3 py-1.5 text-xs text-slate-200 mt-1">
+                  Ready? The audio sync is super sharp tonight!
+                </div>
+</div>
+</div>
+<!-- Message 2 (You / Ankush) -->
+<div class="flex items-start gap-2.5 flex-row-reverse self-end max-w-[85%]">
+<div class="w-7 h-7 rounded-full bg-[#FF0000] flex items-center justify-center text-white text-[11px] font-bold shrink-0 shadow-sm">
+                A
+              </div>
+<div class="flex flex-col items-end min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="text-[10px] text-[#717171] font-mono">21:05</span>
+<span class="text-xs font-semibold text-[#FF8080]">Ankush (You)</span>
+</div>
+<div class="bg-[#FF0000] text-white rounded-2xl rounded-tr-sm px-3 py-1.5 text-xs mt-1 shadow-sm">
+                  Starting now! 😂 This snow leopard scene is legendary.
+                </div>
+</div>
+</div>
+<!-- System notification pill -->
+<div class="flex items-center justify-center my-1">
+<span class="text-[10px] font-mono text-[#717171] bg-white/[0.03] px-2.5 py-0.5 rounded-full border border-white/[0.08]">
+                Aman Kumar joined the party
+              </span>
+</div>
+<!-- Message 3 -->
+<div class="flex items-start gap-2.5">
+<div class="w-7 h-7 rounded-full bg-[#202020] text-slate-300 border border-white/10 flex items-center justify-center text-[11px] font-bold shrink-0">
+                AK
+              </div>
+<div class="flex flex-col min-w-0 max-w-[85%]">
+<div class="flex items-center gap-1.5">
+<span class="text-xs font-semibold text-slate-300">Aman Kumar</span>
+<span class="text-[10px] text-[#717171] font-mono">21:06</span>
+</div>
+<div class="bg-white/[0.04] border border-white/[0.08] rounded-2xl rounded-tl-sm px-3 py-1.5 text-xs text-slate-200 mt-1">
+                  Let's go! Perfectly synced on 4K here 🔥
+                </div>
+</div>
+</div>
+</div>
+<!-- Chat Input Bar -->
+<form class="pt-3 border-t border-white/[0.08] flex items-center gap-2" id="chatForm">
+<div class="relative flex-1">
+<input class="w-full bg-[#181818] border border-white/[0.08] focus:border-[#FF0000] focus:ring-1 focus:ring-[#FF0000] rounded-xl px-3.5 py-2 text-xs text-slate-100 placeholder:text-[#717171] outline-none transition-all" id="chatInput" placeholder="Send a message..." type="text">
+</div>
+<button class="w-8 h-8 rounded-xl bg-[#FF0000] hover:bg-[#CC0000] text-white flex items-center justify-center shrink-0 transition-all shadow-md shadow-[#FF0000]/25" title="Send message" type="submit">
+<span class="material-symbols-outlined text-[16px]">send</span>
+</button>
+</form>
+</div>
+</aside>
+</div>
+</main>
+<!-- ================= MODALS & OVERLAYS ================= -->
+<!-- MODAL A: CHANGE VIDEO MODAL -->
+<div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4" id="modalChangeVideo"><div class="bg-[#121212] border border-white/10 w-full max-w-2xl rounded-2xl shadow-2xl p-6 backdrop-blur-xl flex flex-col gap-5 text-white max-h-[90vh] overflow-y-auto" id="searchModalCard">
+<!-- Header -->
+<div class="flex items-start justify-between gap-4 border-b border-white/[0.08] pb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-[#FF0000]/15 text-[#FF4D4D] border border-[#FF0000]/30 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[24px]">search</span>
+</div>
+<div>
+<h3 class="font-display text-xl font-bold text-white tracking-tight">Search YouTube</h3>
+<p class="text-xs text-[#AAAAAA] mt-0.5">Find any video, song, or stream to sync instantly for everyone in this room</p>
+</div>
+</div>
+<button class="modalCloseBtn text-[#AAAAAA] hover:text-white p-1 rounded-lg hover:bg-white/[0.06] transition-colors" title="Close search">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Interactive State Bar for Testing & Verification -->
+<div class="flex items-center justify-between gap-2 p-1.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-xs">
+<span class="text-[11px] font-mono text-[#717171] uppercase font-bold pl-2">View State:</span>
+<div class="flex items-center gap-1">
+<button class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#FF0000] text-white shadow-sm transition-all" id="btnStateResults" type="button">Results</button>
+<button class="px-2.5 py-1 rounded-lg text-xs font-medium text-[#AAAAAA] hover:text-white transition-all" id="btnStateEmpty" type="button">Empty State</button>
+<button class="px-2.5 py-1 rounded-lg text-xs font-medium text-[#AAAAAA] hover:text-white transition-all" id="btnStateLoading" type="button">Loading</button>
+<button class="px-2.5 py-1 rounded-lg text-xs font-medium text-[#AAAAAA] hover:text-white transition-all" id="btnStateNoResults" type="button">No Results</button>
+</div>
+</div>
+<!-- Search Bar with Red Action Button -->
+<form class="flex items-center gap-2" id="youtubeSearchForm">
+<div class="relative flex-1 flex items-center">
+<span class="material-symbols-outlined absolute left-3.5 text-[#717171] text-[20px] pointer-events-none">search</span>
+<input class="w-full bg-[#181818] border border-white/10 focus:border-[#FF0000] focus:ring-1 focus:ring-[#FF0000] rounded-xl pl-11 pr-10 py-3 text-sm text-slate-100 placeholder:text-[#717171] outline-none transition-all" id="ytSearchInput" placeholder="Search music, videos, movies..." type="text" value="Arijit Singh / Interstellar / Planet Earth">
+<button class="absolute right-3 p-1 text-[#717171] hover:text-white transition-colors" id="clearSearchBtn" title="Clear search" type="button">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<button class="h-12 px-5 rounded-xl bg-[#FF0000] hover:bg-[#CC0000] text-white font-semibold text-xs sm:text-sm flex items-center gap-1.5 shadow-md shadow-[#FF0000]/25 transition-all shrink-0" type="submit">
+<span class="material-symbols-outlined text-[18px]">search</span>
+<span class="">Search</span>
+</button>
+</form>
+<!-- 1. SELECTED VIDEO BANNER (Top of Results) -->
+<div class="p-4 rounded-xl bg-gradient-to-b from-[#FF0000]/15 to-[#FF0000]/5 border border-[#FF0000]/30 shadow-lg shadow-[#FF0000]/10 flex flex-col gap-3.5 transition-all" id="selectedVideoSection">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-[#FF0000] animate-pulse shadow-[0_0_8px_#ff0000]"></span>
+<span class="text-xs font-mono font-bold uppercase tracking-wider text-[#FF8080]">Selected Video to Sync</span>
+</div>
+<span class="text-[10px] font-mono font-medium text-[#22C55E] bg-[#22C55E]/10 border border-[#22C55E]/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-[#22C55E]"></span> Sync ready for all 4 peers
+      </span>
+</div>
+<div class="flex flex-col sm:flex-row gap-3.5 items-start sm:items-center">
+<div class="relative w-full sm:w-44 aspect-video rounded-lg overflow-hidden bg-slate-800 shrink-0 border border-white/15">
+<img alt="Selected video preview thumbnail" class="w-full h-full object-cover" id="selectedThumbImg" src="https://lh3.googleusercontent.com/aida/AEtjO1WPy0_78Oyl_GZZ7s18EZN_IjcQ56mBJymcrHw73TKT-bWJ5QfKEbjj1p17qoUI_b2XmoEd5o77Cf-gZp5gZG3eueKeKHo74Dmd2cJmMA4xzqUHlAzWg8KmP0acqG7HluXuBYgz90EAA46nM7u_jd9YmTUyC9UkQPYvgHmoW4UCi0xpcUNWGaen8-GdSf1AYW-54sjl7Y0YMl-77YcPgARefE2Tk6AD1N9t2297HhJlhseR8jedt2aBeB4i">
+<span class="absolute bottom-1 right-1 bg-black/90 text-white font-mono text-[10px] px-1.5 py-0.5 rounded font-semibold" id="selectedDurationBadge">4:49</span>
+</div>
+<div class="flex flex-col justify-center min-w-0 flex-1">
+<h4 class="text-sm sm:text-base font-bold text-white truncate" id="selectedTitleText">Channa Mereya - Arijit Singh | Lyric Video</h4>
+<p class="text-xs text-[#AAAAAA] mt-1 flex items-center gap-2 truncate" id="selectedChannelText">
+<span class="">T-Series</span>
+<span class="">•</span>
+<span class="text-slate-300 font-mono">4:49 · Music · 840M views</span>
+</p>
+<p class="text-[11px] text-[#AAAAAA] mt-1.5">Pressing Play Together starts synchronized streaming for everyone in the theater.</p>
+</div>
+</div>
+<div class="flex flex-wrap items-center justify-end gap-2.5 pt-1 border-t border-white/[0.06]">
+<button class="modalCloseBtn px-4 py-2.5 rounded-lg bg-[#202020] hover:bg-[#181818] border border-white/10 text-slate-300 hover:text-white text-xs font-medium transition-all" id="btnCancelSelected" type="button">
+        Cancel
+      </button>
+<button class="px-6 py-2.5 rounded-lg bg-[#FF0000] hover:bg-[#CC0000] text-white text-xs sm:text-sm font-semibold flex items-center gap-2 shadow-lg shadow-[#FF0000]/40 hover:scale-105 active:scale-95 transition-all" id="btnPlayTogether" type="button">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+<span class="">Play Together</span>
+</button>
+</div>
+</div>
+<!-- 2. REALISTIC SEARCH RESULTS LIST -->
+<div class="flex flex-col gap-3" id="searchContainerResults">
+<div class="flex items-center justify-between text-xs text-[#AAAAAA] px-1">
+<span class="font-medium">YouTube Search Results</span>
+<span class="font-mono text-[11px] text-[#717171]">3 verified matches</span>
+</div>
+<div class="flex flex-col gap-2.5">
+<!-- Card 1 -->
+<div class="searchResultItem group flex items-start sm:items-center justify-between gap-3 p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.06] hover:border-[#FF0000]/40 cursor-pointer transition-all" data-category="Music" data-channel="T-Series • 840M views" data-duration="4:49" data-img="https://lh3.googleusercontent.com/aida/AEtjO1WPy0_78Oyl_GZZ7s18EZN_IjcQ56mBJymcrHw73TKT-bWJ5QfKEbjj1p17qoUI_b2XmoEd5o77Cf-gZp5gZG3eueKeKHo74Dmd2cJmMA4xzqUHlAzWg8KmP0acqG7HluXuBYgz90EAA46nM7u_jd9YmTUyC9UkQPYvgHmoW4UCi0xpcUNWGaen8-GdSf1AYW-54sjl7Y0YMl-77YcPgARefE2Tk6AD1N9t2297HhJlhseR8jedt2aBeB4i" data-title="Channa Mereya - Arijit Singh | Lyric Video">
+<div class="flex items-start sm:items-center gap-3 min-w-0">
+<div class="relative w-28 sm:w-32 aspect-video rounded-lg overflow-hidden bg-slate-800 shrink-0 border border-white/10">
+<img alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida/AEtjO1WPy0_78Oyl_GZZ7s18EZN_IjcQ56mBJymcrHw73TKT-bWJ5QfKEbjj1p17qoUI_b2XmoEd5o77Cf-gZp5gZG3eueKeKHo74Dmd2cJmMA4xzqUHlAzWg8KmP0acqG7HluXuBYgz90EAA46nM7u_jd9YmTUyC9UkQPYvgHmoW4UCi0xpcUNWGaen8-GdSf1AYW-54sjl7Y0YMl-77YcPgARefE2Tk6AD1N9t2297HhJlhseR8jedt2aBeB4i">
+<span class="absolute bottom-1 right-1 bg-black/85 text-white font-mono text-[10px] px-1.5 py-0.5 rounded">4:49</span>
+</div>
+<div class="flex flex-col min-w-0">
+<h4 class="text-xs sm:text-sm font-semibold text-white group-hover:text-[#FF8080] truncate transition-colors">Channa Mereya - Arijit Singh | Lyric Video</h4>
+<p class="text-xs text-[#AAAAAA] truncate mt-0.5">T-Series • 840M views</p>
+<div class="flex items-center gap-2 mt-1.5">
+<span class="text-[10px] font-medium font-mono text-[#AAAAAA] bg-white/[0.06] px-2 py-0.5 rounded">4:49 · Music</span>
+</div>
+</div>
+</div>
+<button class="selectRowBtn shrink-0 px-3.5 py-1.5 rounded-lg bg-white/[0.06] group-hover:bg-[#FF0000] text-xs font-semibold text-slate-200 group-hover:text-white transition-all" type="button">Select</button>
+</div>
+<!-- Card 2 -->
+<div class="searchResultItem group flex items-start sm:items-center justify-between gap-3 p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.06] hover:border-[#FF0000]/40 cursor-pointer transition-all" data-category="Film Score" data-channel="WaterTower Music • 92M views" data-duration="4:06" data-img="https://lh3.googleusercontent.com/aida/AEtjO1WPy0_78Oyl_GZZ7s18EZN_IjcQ56mBJymcrHw73TKT-bWJ5QfKEbjj1p17qoUI_b2XmoEd5o77Cf-gZp5gZG3eueKeKHo74Dmd2cJmMA4xzqUHlAzWg8KmP0acqG7HluXuBYgz90EAA46nM7u_jd9YmTUyC9UkQPYvgHmoW4UCi0xpcUNWGaen8-GdSf1AYW-54sjl7Y0YMl-77YcPgARefE2Tk6AD1N9t2297HhJlhseR8jedt2aBeB4i" data-title="Interstellar — Main Theme (Official Soundtrack)">
+<div class="flex items-start sm:items-center gap-3 min-w-0">
+<div class="relative w-28 sm:w-32 aspect-video rounded-lg overflow-hidden bg-slate-800 shrink-0 border border-white/10">
+<img alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida/AEtjO1WPy0_78Oyl_GZZ7s18EZN_IjcQ56mBJymcrHw73TKT-bWJ5QfKEbjj1p17qoUI_b2XmoEd5o77Cf-gZp5gZG3eueKeKHo74Dmd2cJmMA4xzqUHlAzWg8KmP0acqG7HluXuBYgz90EAA46nM7u_jd9YmTUyC9UkQPYvgHmoW4UCi0xpcUNWGaen8-GdSf1AYW-54sjl7Y0YMl-77YcPgARefE2Tk6AD1N9t2297HhJlhseR8jedt2aBeB4i">
+<span class="absolute bottom-1 right-1 bg-black/85 text-white font-mono text-[10px] px-1.5 py-0.5 rounded">4:06</span>
+</div>
+<div class="flex flex-col min-w-0">
+<h4 class="text-xs sm:text-sm font-semibold text-white group-hover:text-[#FF8080] truncate transition-colors">Interstellar — Main Theme (Official Soundtrack)</h4>
+<p class="text-xs text-[#AAAAAA] truncate mt-0.5">WaterTower Music • 92M views</p>
+<div class="flex items-center gap-2 mt-1.5">
+<span class="text-[10px] font-medium font-mono text-[#AAAAAA] bg-white/[0.06] px-2 py-0.5 rounded">4:06 · 4K Audio</span>
+</div>
+</div>
+</div>
+<button class="selectRowBtn shrink-0 px-3.5 py-1.5 rounded-lg bg-white/[0.06] group-hover:bg-[#FF0000] text-xs font-semibold text-slate-200 group-hover:text-white transition-all" type="button">Select</button>
+</div>
+<!-- Card 3 -->
+<div class="searchResultItem group flex items-start sm:items-center justify-between gap-3 p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.06] hover:border-[#FF0000]/40 cursor-pointer transition-all" data-category="Documentary" data-channel="BBC Earth • 42M views" data-duration="2:45" data-img="https://lh3.googleusercontent.com/aida/AEtjO1WPy0_78Oyl_GZZ7s18EZN_IjcQ56mBJymcrHw73TKT-bWJ5QfKEbjj1p17qoUI_b2XmoEd5o77Cf-gZp5gZG3eueKeKHo74Dmd2cJmMA4xzqUHlAzWg8KmP0acqG7HluXuBYgz90EAA46nM7u_jd9YmTUyC9UkQPYvgHmoW4UCi0xpcUNWGaen8-GdSf1AYW-54sjl7Y0YMl-77YcPgARefE2Tk6AD1N9t2297HhJlhseR8jedt2aBeB4i" data-title="Planet Earth III — Official 4K Trailer">
+<div class="flex items-start sm:items-center gap-3 min-w-0">
+<div class="relative w-28 sm:w-32 aspect-video rounded-lg overflow-hidden bg-slate-800 shrink-0 border border-white/10">
+<img alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida/AEtjO1WPy0_78Oyl_GZZ7s18EZN_IjcQ56mBJymcrHw73TKT-bWJ5QfKEbjj1p17qoUI_b2XmoEd5o77Cf-gZp5gZG3eueKeKHo74Dmd2cJmMA4xzqUHlAzWg8KmP0acqG7HluXuBYgz90EAA46nM7u_jd9YmTUyC9UkQPYvgHmoW4UCi0xpcUNWGaen8-GdSf1AYW-54sjl7Y0YMl-77YcPgARefE2Tk6AD1N9t2297HhJlhseR8jedt2aBeB4i">
+<span class="absolute bottom-1 right-1 bg-black/85 text-white font-mono text-[10px] px-1.5 py-0.5 rounded">2:45</span>
+</div>
+<div class="flex flex-col min-w-0">
+<h4 class="text-xs sm:text-sm font-semibold text-white group-hover:text-[#FF8080] truncate transition-colors">Planet Earth III — Official 4K Trailer</h4>
+<p class="text-xs text-[#AAAAAA] truncate mt-0.5">BBC Earth • 42M views</p>
+<div class="flex items-center gap-2 mt-1.5">
+<span class="text-[10px] font-medium font-mono text-[#AAAAAA] bg-white/[0.06] px-2 py-0.5 rounded">2:45 · Documentary</span>
+</div>
+</div>
+</div>
+<button class="selectRowBtn shrink-0 px-3.5 py-1.5 rounded-lg bg-white/[0.06] group-hover:bg-[#FF0000] text-xs font-semibold text-slate-200 group-hover:text-white transition-all" type="button">Select</button>
+</div>
+</div>
+</div>
+<!-- 3. EMPTY STATE -->
+<div class="hidden p-8 text-center flex-col items-center justify-center gap-3 rounded-xl bg-white/[0.02] border border-dashed border-white/10 my-2" id="searchContainerEmpty">
+<div class="w-12 h-12 rounded-full bg-white/[0.04] border border-white/10 text-[#AAAAAA] flex items-center justify-center">
+<span class="material-symbols-outlined text-[26px]">search</span>
+</div>
+<div class="space-y-1">
+<h4 class="text-sm font-semibold text-white">Find something to watch together</h4>
+<p class="text-xs text-[#AAAAAA] max-w-sm">Type keywords, video titles, or music artist names in the search box above to explore YouTube.</p>
+</div>
+</div>
+<!-- 4. LOADING STATE (Shimmer skeleton rows) -->
+<div class="hidden flex-col gap-3 my-1" id="searchContainerLoading">
+<div class="flex items-center justify-between text-xs text-[#AAAAAA] px-1">
+<span class="font-medium">Searching YouTube...</span>
+<span class="w-2 h-2 rounded-full bg-[#FF0000] animate-pulse"></span>
+</div>
+<div class="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center gap-3 animate-pulse">
+<div class="w-28 sm:w-32 aspect-video bg-white/10 rounded-lg shrink-0"></div>
+<div class="flex flex-col gap-2 flex-1">
+<div class="h-3.5 bg-white/10 rounded w-4/5"></div>
+<div class="h-2.5 bg-white/[0.06] rounded w-1/2"></div>
+<div class="h-2.5 bg-white/[0.04] rounded w-1/4"></div>
+</div>
+</div>
+<div class="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center gap-3 animate-pulse">
+<div class="w-28 sm:w-32 aspect-video bg-white/10 rounded-lg shrink-0"></div>
+<div class="flex flex-col gap-2 flex-1">
+<div class="h-3.5 bg-white/10 rounded w-3/4"></div>
+<div class="h-2.5 bg-white/[0.06] rounded w-2/5"></div>
+<div class="h-2.5 bg-white/[0.04] rounded w-1/4"></div>
+</div>
+</div>
+<div class="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center gap-3 animate-pulse">
+<div class="w-28 sm:w-32 aspect-video bg-white/10 rounded-lg shrink-0"></div>
+<div class="flex flex-col gap-2 flex-1">
+<div class="h-3.5 bg-white/10 rounded w-2/3"></div>
+<div class="h-2.5 bg-white/[0.06] rounded w-1/3"></div>
+<div class="h-2.5 bg-white/[0.04] rounded w-1/4"></div>
+</div>
+</div>
+</div>
+<!-- 5. NO RESULTS STATE -->
+<div class="hidden p-8 text-center flex-col items-center justify-center gap-3 rounded-xl bg-white/[0.02] border border-white/10 my-2" id="searchContainerNoResults">
+<div class="w-12 h-12 rounded-full bg-[#FF0000]/10 border border-[#FF0000]/20 text-[#FF4D4D] flex items-center justify-center">
+<span class="material-symbols-outlined text-[26px]">search_off</span>
+</div>
+<div class="space-y-1">
+<h4 class="text-sm font-semibold text-white">No videos found</h4>
+<p class="text-xs text-[#AAAAAA]">Try another search or paste a direct YouTube link.</p>
+</div>
+</div>
+</div></div><!-- MODAL: PASTE YOUTUBE URL -->
+<div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4" id="modalPasteUrl">
+<div class="bg-[#181818] border border-white/10 w-full max-w-lg rounded-2xl shadow-2xl p-6 flex flex-col gap-5 text-white backdrop-blur-xl">
+<!-- Header -->
+<div class="flex items-center justify-between gap-3 border-b border-white/[0.08] pb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-[#FF0000]/15 text-[#FF4D4D] border border-[#FF0000]/30 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[22px]">link</span>
+</div>
+<div>
+<h3 class="font-display text-base sm:text-lg font-bold text-white">Use YouTube URL</h3>
+<p class="text-xs text-[#AAAAAA]">Paste any YouTube video or livestream to watch in sync</p>
+</div>
+</div>
+<button class="modalCloseBtn text-[#AAAAAA] hover:text-white p-1 rounded-lg hover:bg-white/[0.06] transition-colors">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Input Area -->
+<div class="space-y-2">
+<label class="text-xs font-semibold text-slate-300 flex items-center justify-between">
+<span class="">YouTube Video Link</span>
+<span class="text-[11px] text-[#22C55E] font-medium flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-[#22C55E]"></span> Direct Stream Supported
+        </span>
+</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3.5 text-[#717171] text-[18px]">smart_display</span>
+<input class="w-full bg-[#121212] border border-white/10 focus:border-[#FF0000] focus:ring-1 focus:ring-[#FF0000] rounded-xl pl-10 pr-3.5 py-3 text-xs sm:text-sm font-mono text-slate-100 placeholder:text-[#717171] outline-none transition-all" id="modalDirectUrlField" placeholder="Paste YouTube URL (e.g., https://youtube.com/watch?v=...)" type="text" value="https://www.youtube.com/watch?v=dQw4w9WgXcQ">
+</div>
+<p class="text-[11px] text-[#717171]">Supports YouTube Watch URLs, Shorts, and Live Streams.</p>
+</div>
+<!-- Footer Actions -->
+<div class="flex items-center justify-end gap-2.5 pt-2 border-t border-white/[0.08]">
+<button class="modalCloseBtn px-4 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/10 text-white text-xs font-medium transition-colors">
+        Cancel
+      </button>
+<button class="px-6 py-2.5 rounded-xl bg-[#FF0000] hover:bg-[#CC0000] text-white text-xs sm:text-sm font-semibold flex items-center gap-2 shadow-lg shadow-[#FF0000]/30 hover:scale-105 active:scale-95 transition-all" id="btnSubmitDirectUrlModal">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+<span class="">Play Together</span>
+</button>
+</div>
+</div>
+</div>
+<!-- MODAL B: SHARE ROOM MODAL -->
+<div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4" id="modalShareRoom">
+<div class="bg-[#181818] border border-white/10 w-full max-w-md rounded-2xl shadow-2xl p-6 flex flex-col gap-5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-xl bg-[#FF0000]/15 text-[#FF4D4D] border border-[#FF0000]/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">ios_share</span>
+</div>
+<div>
+<h3 class="font-display text-base font-bold text-white">Share Friday Movie Night</h3>
+<p class="text-xs text-[#AAAAAA]">Friends can join with link or 6-digit code</p>
+</div>
+</div>
+<button class="modalCloseBtn text-[#AAAAAA] hover:text-white p-1">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Permanent URL Field -->
+<div class="space-y-1.5">
+<label class="text-xs font-semibold text-slate-300">Invite URL</label>
+<div class="flex items-center gap-2 bg-[#0E0E0E] border border-white/10 rounded-xl p-1.5">
+<input class="flex-1 bg-transparent px-2 text-xs font-mono text-[#FF8080] outline-none" readonly="" type="text" value="https://watchtogether.app/party/X7K92P">
+<button class="px-3 py-1.5 rounded-lg bg-[#FF0000] hover:bg-[#CC0000] text-white text-xs font-medium" id="modalCopyUrlBtn">
+            Copy
+          </button>
+</div>
+</div>
+<!-- Room Code Badge -->
+<div class="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.08]">
+<div>
+<span class="text-[10px] uppercase font-bold text-[#717171] font-mono">Room Passcode</span>
+<p class="text-lg font-mono font-bold text-white tracking-widest">X7K92P</p>
+</div>
+<button class="px-2.5 py-1.5 rounded-lg bg-white/[0.05] hover:bg-white/10 text-slate-300 text-xs font-mono flex items-center gap-1" id="modalCopyCodeOnlyBtn">
+<span class="material-symbols-outlined text-[14px]">content_copy</span>
+<span class="">Copy Code</span>
+</button>
+</div>
+<div class="flex justify-end pt-1">
+<button class="modalCloseBtn px-5 py-2 rounded-xl bg-white/[0.06] hover:bg-white/10 text-white text-xs font-medium">
+          Done
+        </button>
+</div>
+</div>
+</div>
+<!-- MODAL C: ROLE MANAGEMENT MODAL -->
+<div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4" id="modalRoleManagement">
+<div class="bg-[#181818] border border-white/10 w-full max-w-md rounded-2xl shadow-2xl p-6 flex flex-col gap-5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-xl bg-[#FF0000]/15 text-[#FF4D4D] border border-[#FF0000]/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">manage_accounts</span>
+</div>
+<div>
+<h3 class="font-display text-base font-bold text-white">Manage Permissions</h3>
+<p class="text-xs text-[#AAAAAA]">Change role for <span class="text-[#FF8080] font-semibold" id="targetUserNameRoleModal">Rahul Sharma</span></p>
+</div>
+</div>
+<button class="modalCloseBtn text-[#AAAAAA] hover:text-white p-1">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Options -->
+<div class="flex flex-col gap-2.5">
+<label class="flex items-start gap-3 p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] cursor-pointer transition-colors">
+<input checked="" class="mt-1 accent-[#FF0000]" name="selectedRoleOption" type="radio" value="moderator">
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-white flex items-center gap-1.5">
+<span class="">🛡️</span> Moderator
+            </span>
+<span class="text-[11px] text-[#AAAAAA] mt-0.5">Can pause, play, seek, and change video. Cannot remove the host.</span>
+</div>
+</label>
+<label class="flex items-start gap-3 p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] cursor-pointer transition-colors">
+<input class="mt-1 accent-[#FF0000]" name="selectedRoleOption" type="radio" value="participant">
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-white flex items-center gap-1.5">
+<span class="">👤</span> Participant
+            </span>
+<span class="text-[11px] text-[#AAAAAA] mt-0.5">View-only synchronization. Viewers can send chat and emoji reactions.</span>
+</div>
+</label>
+</div>
+<!-- Footer -->
+<div class="flex items-center justify-end gap-2.5 pt-1">
+<button class="modalCloseBtn px-4 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/[0.06]">
+          Cancel
+        </button>
+<button class="px-5 py-2 rounded-xl bg-[#FF0000] hover:bg-[#CC0000] text-white text-xs font-semibold shadow-md shadow-[#FF0000]/30" id="saveRoleChangeBtn">
+          Save Changes
+        </button>
+</div>
+</div>
+</div>
+<!-- TOAST NOTIFICATIONS (Subtle bottom-right toasts) -->
+<div class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full" id="toastContainer">
+<!-- Initial welcome toast -->
+<div class="pointer-events-auto bg-[#181818]/95 backdrop-blur-md border border-white/10 p-3 rounded-xl shadow-2xl flex items-center justify-between gap-3 text-xs transition-all duration-300">
+<div class="flex items-center gap-2.5 min-w-0">
+<span class="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse"></span>
+<p class="text-slate-200 truncate">● Rahul Sharma joined the room</p>
+</div>
+<button class="text-[#AAAAAA] hover:text-white" onclick="this.parentElement.remove()">
+<span class="material-symbols-outlined text-[15px]">close</span>
+</button>
+</div>
+</div>
+<!-- ================= JAVASCRIPT LOGIC ================= -->
+<script>
+    // Tab switching between People & Chat
+    const sidebarTabPeople = document.getElementById('sidebarTabPeople');
+    const sidebarTabChat = document.getElementById('sidebarTabChat');
+    const peopleTabPanel = document.getElementById('peopleTabPanel');
+    const chatTabPanel = document.getElementById('chatTabPanel');
+
+    sidebarTabPeople.addEventListener('click', () => {
+      sidebarTabPeople.className = "flex-1 py-2 px-3 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 bg-white/[0.08] text-white shadow-sm transition-all";
+      sidebarTabChat.className = "flex-1 py-2 px-3 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 text-[#AAAAAA] hover:text-white transition-all";
+      peopleTabPanel.classList.remove('hidden');
+      chatTabPanel.classList.add('hidden');
+    });
+
+    sidebarTabChat.addEventListener('click', () => {
+      sidebarTabChat.className = "flex-1 py-2 px-3 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 bg-white/[0.08] text-white shadow-sm transition-all";
+      sidebarTabPeople.className = "flex-1 py-2 px-3 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 text-[#AAAAAA] hover:text-white transition-all";
+      chatTabPanel.classList.remove('hidden');
+      peopleTabPanel.classList.add('hidden');
+    });
+
+    // Playback Toggle
+    const playbackToggleBtn = document.getElementById('playbackToggleBtn');
+    const playPauseIcon = document.getElementById('playPauseIcon');
+    const centerPlayIndicator = document.getElementById('centerPlayIndicator');
+    let isPlaying = true;
+
+    function togglePlayback() {
+      isPlaying = !isPlaying;
+      if (isPlaying) {
+        playPauseIcon.textContent = 'pause';
+        triggerToast("Playback resumed for all 4 peers");
+      } else {
+        playPauseIcon.textContent = 'play_arrow';
+        triggerToast("Playback paused by Host");
+      }
+      centerPlayIndicator.classList.remove('opacity-0', 'scale-75');
+      centerPlayIndicator.classList.add('opacity-100', 'scale-100');
+      setTimeout(() => {
+        centerPlayIndicator.classList.remove('opacity-100', 'scale-100');
+        centerPlayIndicator.classList.add('opacity-0', 'scale-75');
+      }, 500);
+    }
+    playbackToggleBtn.addEventListener('click', togglePlayback);
+
+    // Dynamic Role Switcher (Host, Moderator, Participant)
+    const switchHostBtn = document.getElementById('switchHostBtn');
+    const switchModBtn = document.getElementById('switchModBtn');
+    const switchParticipantBtn = document.getElementById('switchParticipantBtn');
+    const roleNoticeLabel = document.getElementById('roleNoticeLabel');
+    const changeVideoBtn = document.getElementById('openChangeVideoModalBtn');
+    const playerSyncStatusBadge = document.getElementById('playerSyncStatusBadge');
+    const playerSyncText = document.getElementById('playerSyncText');
+
+    let currentPerspective = 'host'; // 'host' | 'moderator' | 'participant'
+
+    function resetRoleSwitchButtons() {
+      [switchHostBtn, switchModBtn, switchParticipantBtn].forEach(btn => {
+        btn.className = "px-2.5 py-1 rounded-md text-xs font-medium text-[#AAAAAA] hover:text-white transition-all flex items-center gap-1.5";
+      });
+    }
+
+    switchHostBtn.addEventListener('click', () => {
+      currentPerspective = 'host';
+      resetRoleSwitchButtons();
+      switchHostBtn.className = "px-2.5 py-1 rounded-md text-xs font-semibold bg-[#FF0000] text-white shadow-sm transition-all flex items-center gap-1.5";
+      roleNoticeLabel.textContent = "👑 Host has full playback & media control";
+      changeVideoBtn.disabled = false;
+      changeVideoBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-neutral-800');
+      changeVideoBtn.classList.add('bg-[#FF0000]', 'hover:bg-[#CC0000]');
+      changeVideoBtn.title = "Change Video";
+      playerSyncText.textContent = "Synced";
+      playerSyncStatusBadge.className = "hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#22C55E]/10 border border-[#22C55E]/20 text-[#22C55E] font-mono text-[11px] font-medium";
+      playbackToggleBtn.disabled = false;
+      triggerToast("Viewing as Host (Full Room Control)");
+    });
+
+    switchModBtn.addEventListener('click', () => {
+      currentPerspective = 'moderator';
+      resetRoleSwitchButtons();
+      switchModBtn.className = "px-2.5 py-1 rounded-md text-xs font-semibold bg-[#202020] text-white border border-white/20 shadow-sm transition-all flex items-center gap-1.5";
+      roleNoticeLabel.textContent = "🛡️ Moderator can manage playback and queue";
+      changeVideoBtn.disabled = false;
+      changeVideoBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-neutral-800');
+      changeVideoBtn.classList.add('bg-[#FF0000]', 'hover:bg-[#CC0000]');
+      playerSyncText.textContent = "Synced";
+      playbackToggleBtn.disabled = false;
+      triggerToast("Viewing as Moderator (Playback Permissions Granted)");
+    });
+
+    switchParticipantBtn.addEventListener('click', () => {
+      currentPerspective = 'participant';
+      resetRoleSwitchButtons();
+      switchParticipantBtn.className = "px-2.5 py-1 rounded-md text-xs font-semibold bg-[#202020] text-[#AAAAAA] shadow-sm transition-all flex items-center gap-1.5";
+      roleNoticeLabel.textContent = "👤 Participant view: Controls locked to Host";
+      changeVideoBtn.disabled = true;
+      changeVideoBtn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-neutral-800');
+      changeVideoBtn.classList.remove('bg-[#FF0000]', 'hover:bg-[#CC0000]');
+      changeVideoBtn.title = "Only the Host or Moderator can change the video";
+      playerSyncText.textContent = "Controls Locked (Host Only)";
+      playerSyncStatusBadge.className = "hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 font-mono text-[11px] font-medium";
+      triggerToast("Viewing as Participant (Controls locked to Host)");
+    });
+
+    // Modals Control
+    const modalChangeVideo = document.getElementById('modalChangeVideo');
+    const modalShareRoom = document.getElementById('modalShareRoom');
+    const modalRoleManagement = document.getElementById('modalRoleManagement');
+
+    function closeAllModals() {
+      modalChangeVideo.classList.add('hidden');
+      modalChangeVideo.classList.remove('flex');
+      modalShareRoom.classList.add('hidden');
+      modalShareRoom.classList.remove('flex');
+      modalRoleManagement.classList.add('hidden');
+      modalRoleManagement.classList.remove('flex');
+      document.querySelectorAll('.userDropdownMenu').forEach(el => el.classList.add('hidden'));
+    }
+
+    document.querySelectorAll('.modalCloseBtn').forEach(btn => {
+      btn.addEventListener('click', closeAllModals);
+    });
+
+    // Open change video modal
+    changeVideoBtn.addEventListener('click', () => {
+      if (currentPerspective === 'participant') {
+        triggerToast("Only the Host or Moderator can change the video");
+        return;
+      }
+      modalChangeVideo.classList.remove('hidden');
+      modalChangeVideo.classList.add('flex');
+    });
+
+    document.getElementById('previewChangeModalBtn').addEventListener('click', () => {
+      modalChangeVideo.classList.remove('hidden');
+      modalChangeVideo.classList.add('flex');
+    });
+
+    document.getElementById('modalSubmitChangeVideo').addEventListener('click', () => {
+      closeAllModals();
+      triggerToast("New video queued & synchronized for all viewers");
+    });
+
+    // Open Share modal
+    function openShare() {
+      modalShareRoom.classList.remove('hidden');
+      modalShareRoom.classList.add('flex');
+    }
+    document.getElementById('navShareBtn').addEventListener('click', openShare);
+    document.getElementById('openShareModalMainBtn').addEventListener('click', openShare);
+    document.getElementById('previewShareModalBtn').addEventListener('click', openShare);
+    document.getElementById('sidebarInviteBtn').addEventListener('click', openShare);
+    document.getElementById('dropdownInviteBtn').addEventListener('click', () => {
+      document.getElementById('headerDropdown').classList.add('hidden');
+      openShare();
+    });
+
+    // Open Role modal
+    function openRoleManagement(userName) {
+      document.getElementById('targetUserNameRoleModal').textContent = userName || "Rahul Sharma";
+      modalRoleManagement.classList.remove('hidden');
+      modalRoleManagement.classList.add('flex');
+    }
+    document.getElementById('previewRoleModalBtn').addEventListener('click', () => openRoleManagement("Rahul Sharma"));
+    document.getElementById('saveRoleChangeBtn').addEventListener('click', () => {
+      closeAllModals();
+      triggerToast("Permission role updated and synced");
+    });
+
+    // Context user dropdowns
+    document.querySelectorAll('.participantMenuToggle').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const menu = btn.nextElementSibling;
+        const isHidden = menu.classList.contains('hidden');
+        document.querySelectorAll('.userDropdownMenu').forEach(el => el.classList.add('hidden'));
+        if (isHidden) menu.classList.remove('hidden');
+      });
+    });
+
+    // Demote / Promote / Kick actions in dropdowns
+    document.querySelectorAll('.demoteBtn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeAllModals();
+        openRoleManagement(btn.getAttribute('data-user'));
+      });
+    });
+
+    document.querySelectorAll('.promoteBtn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeAllModals();
+        openRoleManagement(btn.getAttribute('data-user'));
+      });
+    });
+
+    document.querySelectorAll('.kickBtn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const user = btn.getAttribute('data-user');
+        closeAllModals();
+        btn.closest('.group').remove();
+        triggerToast(`Removed ${user} from the room`);
+        const countSpan = document.getElementById('peopleCountTab');
+        const currentCount = parseInt(countSpan.textContent, 10);
+        if (currentCount > 1) {
+          countSpan.textContent = currentCount - 1;
+          document.getElementById('navWatchingCount').textContent = `${currentCount - 1} watching`;
+          document.getElementById('peopleSectionTitle').textContent = `People • ${currentCount - 1} watching`;
+        }
+      });
+    });
+
+    // Header dropdown toggle
+    const headerMoreBtn = document.getElementById('headerMoreBtn');
+    const headerDropdown = document.getElementById('headerDropdown');
+    headerMoreBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      headerDropdown.classList.toggle('hidden');
+    });
+
+    window.addEventListener('click', () => {
+      document.querySelectorAll('.userDropdownMenu').forEach(el => el.classList.add('hidden'));
+      headerDropdown.classList.add('hidden');
+    });
+
+    // Copy to clipboard helpers
+    function copyText(text, msg) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text);
+      }
+      triggerToast(msg);
+    }
+
+    document.getElementById('copyCodeNavBtn').addEventListener('click', () => copyText('X7K92P', 'Room Code X7K92P copied!'));
+    document.getElementById('copyInviteLinkBtn').addEventListener('click', () => copyText('https://watchtogether.app/party/X7K92P', 'Invite link copied to clipboard!'));
+    document.getElementById('modalCopyUrlBtn').addEventListener('click', () => copyText('https://watchtogether.app/party/X7K92P', 'Invite link copied!'));
+    document.getElementById('modalCopyCodeOnlyBtn').addEventListener('click', () => copyText('X7K92P', 'Code X7K92P copied!'));
+
+    // Toast helper
+    function triggerToast(message) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = "pointer-events-auto bg-[#181818]/95 backdrop-blur-md border border-white/10 p-3 rounded-xl shadow-2xl flex items-center justify-between gap-3 text-xs transition-all duration-300";
+      toast.innerHTML = `
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span class="w-2 h-2 rounded-full bg-[#FF4D4D]"></span>
+          <p class="text-slate-200 truncate">${message}</p>
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-[#AAAAAA] hover:text-white">
+          <span class="material-symbols-outlined text-[15px]">close</span>
+        </button>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.remove();
+      }, 3500);
+    }
+
+    // Reaction Emojis Click Handler
+    const dynamicEmojiSpawn = document.getElementById('dynamicEmojiSpawn');
+    document.querySelectorAll('.emoji-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const emoji = btn.getAttribute('data-emoji');
+        const bubble = document.createElement('div');
+        bubble.className = "animate-float-reaction text-2xl select-none";
+        bubble.textContent = emoji;
+        dynamicEmojiSpawn.appendChild(bubble);
+        setTimeout(() => bubble.remove(), 2600);
+      });
+    });
+
+    // Chat Send Simulator
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+    const chatMessagesContainer = document.getElementById('chatMessagesContainer');
+
+    chatForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const val = chatInput.value.trim();
+      if (!val) return;
+
+      const newMsg = document.createElement('div');
+      newMsg.className = "flex items-start gap-2.5 flex-row-reverse self-end max-w-[85%]";
+      newMsg.innerHTML = `
+        <div class="w-7 h-7 rounded-full bg-[#FF0000] flex items-center justify-center text-white text-[11px] font-bold shrink-0">
+          A
+        </div>
+        <div class="flex flex-col items-end min-w-0">
+          <div class="flex items-center gap-1.5">
+            <span class="text-[10px] text-[#717171] font-mono">Just now</span>
+            <span class="text-xs font-semibold text-[#FF8080]">Ankush (You)</span>
+          </div>
+          <div class="bg-[#FF0000] text-white rounded-2xl rounded-tr-sm px-3 py-1.5 text-xs mt-1 shadow-sm">
+            ${val}
+          </div>
+        </div>
+      `;
+      chatMessagesContainer.appendChild(newMsg);
+      chatInput.value = '';
+      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+    });
+
+    // Toggle Empty Room State Demo
+    const toggleEmptyStateBtn = document.getElementById('toggleEmptyStateBtn');
+    const emptyNotice = document.getElementById('emptyRoomStateNotice');
+    const participantsList = document.getElementById('participantsList');
+    let isEmpty = false;
+
+    toggleEmptyStateBtn.addEventListener('click', () => {
+      isEmpty = !isEmpty;
+      if (isEmpty) {
+        participantsList.classList.add('hidden');
+        emptyNotice.classList.remove('hidden');
+        emptyNotice.classList.add('flex');
+        toggleEmptyStateBtn.textContent = "Restore 4 Viewers";
+        triggerToast("Demonstrating Empty Room State");
+      } else {
+        participantsList.classList.remove('hidden');
+        emptyNotice.classList.add('hidden');
+        emptyNotice.classList.remove('flex');
+        toggleEmptyStateBtn.textContent = "Toggle Empty Room";
+        triggerToast("Restored active party state");
+      }
+    });
+
+    // Leave Room simulation
+    document.getElementById('leaveRoomBtn').addEventListener('click', () => {
+      triggerToast("Left room. Redirecting to home...");
+    });
+  </script>
+<script> (function initSearchModalFeature() { const resContainer = document.getElementById('searchContainerResults'); const emptyContainer = document.getElementById('searchContainerEmpty'); const loadingContainer = document.getElementById('searchContainerLoading'); const noResContainer = document.getElementById('searchContainerNoResults'); const btnRes = document.getElementById('btnStateResults'); const btnEmpty = document.getElementById('btnStateEmpty'); const btnLoading = document.getElementById('btnStateLoading'); const btnNoRes = document.getElementById('btnStateNoResults'); const searchInput = document.getElementById('ytSearchInput'); const clearBtn = document.getElementById('clearSearchBtn'); const playTogetherBtn = document.getElementById('btnPlayTogether'); const chooseAnotherBtn = document.getElementById('btnChooseAnother'); const btnUseDirectUrl = document.getElementById('btnUseDirectUrl'); const directUrlInput = document.getElementById('directUrlInput'); const selectedSection = document.getElementById('selectedVideoSection'); const selectedThumb = document.getElementById('selectedThumbImg'); const selectedTitle = document.getElementById('selectedTitleText'); const selectedChannel = document.getElementById('selectedChannelText'); const selectedBadge = document.getElementById('selectedCategoryBadge'); const selectedDuration = document.getElementById('selectedDurationBadge'); function setModalState(state) { [resContainer, emptyContainer, loadingContainer, noResContainer].forEach(el => { if (el) { el.classList.add('hidden'); el.classList.remove('flex'); } }); [btnRes, btnEmpty, btnLoading, btnNoRes].forEach(btn => { if (btn) { btn.className = "px-2.5 py-1 rounded-lg text-xs font-medium text-[#AAAAAA] hover:text-white transition-all"; } }); if (state === 'results') { if (resContainer) { resContainer.classList.remove('hidden'); resContainer.classList.add('flex'); } if (btnRes) btnRes.className = "px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#FF0000] text-white shadow-sm transition-all"; } else if (state === 'empty') { if (emptyContainer) { emptyContainer.classList.remove('hidden'); emptyContainer.classList.add('flex'); } if (btnEmpty) btnEmpty.className = "px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#FF0000] text-white shadow-sm transition-all"; } else if (state === 'loading') { if (loadingContainer) { loadingContainer.classList.remove('hidden'); loadingContainer.classList.add('flex'); } if (btnLoading) btnLoading.className = "px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#FF0000] text-white shadow-sm transition-all"; } else if (state === 'noresults') { if (noResContainer) { noResContainer.classList.remove('hidden'); noResContainer.classList.add('flex'); } if (btnNoRes) btnNoRes.className = "px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#FF0000] text-white shadow-sm transition-all"; } } if (btnRes) btnRes.addEventListener('click', () => setModalState('results')); if (btnEmpty) btnEmpty.addEventListener('click', () => setModalState('empty')); if (btnLoading) btnLoading.addEventListener('click', () => setModalState('loading')); if (btnNoRes) btnNoRes.addEventListener('click', () => setModalState('noresults')); document.querySelectorAll('.searchResultItem').forEach(item => { item.addEventListener('click', () => { const title = item.getAttribute('data-title'); const channel = item.getAttribute('data-channel'); const category = item.getAttribute('data-category'); const duration = item.getAttribute('data-duration'); const img = item.getAttribute('data-img'); if (selectedTitle) selectedTitle.textContent = title; if (selectedChannel) selectedChannel.textContent = channel; if (selectedBadge) selectedBadge.textContent = category; if (selectedDuration) selectedDuration.textContent = duration; if (selectedThumb && img) selectedThumb.src = img; if (selectedSection) { selectedSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); selectedSection.classList.add('ring-2', 'ring-[#FF0000]'); setTimeout(() => selectedSection.classList.remove('ring-2', 'ring-[#FF0000]'), 1000); } }); }); if (chooseAnotherBtn) { chooseAnotherBtn.addEventListener('click', () => { if (searchInput) { searchInput.focus(); searchInput.select(); } }); } if (playTogetherBtn) { playTogetherBtn.addEventListener('click', () => { closeAllModals(); triggerToast('Now playing for everyone: ' + (selectedTitle ? selectedTitle.textContent : 'Selected Video')); }); } if (btnUseDirectUrl) { btnUseDirectUrl.addEventListener('click', () => { const val = directUrlInput ? directUrlInput.value.trim() : ''; if (val) { closeAllModals(); triggerToast('Loaded direct URL for all peers'); } }); } if (clearBtn && searchInput) { clearBtn.addEventListener('click', () => { searchInput.value = ''; searchInput.focus(); setModalState('empty'); }); } const origSwitchParticipant = document.getElementById('switchParticipantBtn'); const origSwitchHost = document.getElementById('switchHostBtn'); const origSwitchMod = document.getElementById('switchModBtn'); const participantLockedNotice = document.getElementById('participantLockedNotice'); const mainChangeVideoBtn = document.getElementById('openChangeVideoModalBtn'); function applyParticipantMode(isParticipant) { if (mainChangeVideoBtn) { if (isParticipant) { mainChangeVideoBtn.classList.add('hidden'); } else { mainChangeVideoBtn.classList.remove('hidden'); } } if (participantLockedNotice) { if (isParticipant) { participantLockedNotice.classList.remove('hidden'); participantLockedNotice.classList.add('flex'); } else { participantLockedNotice.classList.add('hidden'); participantLockedNotice.classList.remove('flex'); } } } if (origSwitchParticipant) { origSwitchParticipant.addEventListener('click', () => applyParticipantMode(true)); } if (origSwitchHost) { origSwitchHost.addEventListener('click', () => applyParticipantMode(false)); } if (origSwitchMod) { origSwitchMod.addEventListener('click', () => applyParticipantMode(false)); } })(); </script>
+
+</body></html>

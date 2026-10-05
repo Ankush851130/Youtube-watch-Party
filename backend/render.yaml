@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: watchtogether-backend
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: CLIENT_URL
+        sync: false
+      - key: YOUTUBE_API_KEY
+        sync: false
+      - key: MONGODB_URI
+        sync: false
