@@ -9,41 +9,22 @@ class RoomManager {
     this.roomCodeMap = new Map();
     // Map<socketId, { userId, roomId }>
     this.socketMap = new Map();
-
-    // Create a pre-seeded default demo room for instant testing
-    this.createDefaultDemoRoom();
   }
 
-  createDefaultDemoRoom() {
-    const demoCode = 'X7K92P';
-    const roomId = 'room_demo_default';
-    const hostId = 'usr_host_ankush';
-    
-    const demoRoom = {
-      roomId,
-      roomCode: demoCode,
-      roomName: 'Watch Party',
-      hostId,
-      currentVideoId: 'GG1_DsScm6U',
-      currentVideoTitle: 'Planet Earth III — Mountain Dynasties',
-      currentChannelTitle: 'BBC Earth',
-      playbackSpeed: 1,
-      isPlaying: true,
-      currentTime: 15,
-      lastUpdated: Date.now(),
-      participants: new Map([
-        [hostId, {
-          userId: hostId,
-          username: 'Ankush Sharma',
-          role: 'HOST',
-          socketId: null,
-          joinedAt: new Date(Date.now() - 3600000)
-        }]
-      ])
-    };
-
-    this.rooms.set(roomId, demoRoom);
-    this.roomCodeMap.set(demoCode, roomId);
+  // Permanently delete a room from memory
+  deleteRoom(roomId) {
+    const room = this.rooms.get(roomId);
+    if (room) {
+      if (room.emptyTimer) {
+        clearTimeout(room.emptyTimer);
+        room.emptyTimer = null;
+      }
+      if (room.roomCode) {
+        this.roomCodeMap.delete(room.roomCode);
+      }
+      this.rooms.delete(roomId);
+      console.log(`🗑️ Room ${room.roomCode} permanently deleted after 2 minutes of inactivity.`);
+    }
   }
 
   // Create a new room
@@ -171,6 +152,13 @@ class RoomManager {
     const room = this.getRoom(roomIdOrCode);
     if (!room) {
       return { error: 'Room not found. Please check your room code or link.' };
+    }
+
+    // Cancel 2-minute empty room cleanup timer if someone joins/rejoins
+    if (room.emptyTimer) {
+      clearTimeout(room.emptyTimer);
+      room.emptyTimer = null;
+      room.emptySince = null;
     }
 
     // Password verification for private room
@@ -499,10 +487,16 @@ class RoomManager {
         const nextHost = remaining.find(p => p.role === 'MODERATOR') || remaining[0];
         nextHost.role = 'HOST';
         room.hostId = nextHost.userId;
-      } else {
-        // If room is empty, remove room from active rooms
-        this.rooms.delete(roomId);
       }
+    }
+
+    // Schedule 2-minute cleanup timer if room is empty (0 participants)
+    if (room.participants.size === 0) {
+      if (room.emptyTimer) clearTimeout(room.emptyTimer);
+      room.emptySince = Date.now();
+      room.emptyTimer = setTimeout(() => {
+        this.deleteRoom(room.roomId);
+      }, 120000); // 2 Minutes (120,000 ms)
     }
 
     return {
@@ -513,16 +507,17 @@ class RoomManager {
     };
   }
 
-  // Get active public rooms summary (filter out private rooms)
+  // Get active public rooms summary (filter out private rooms & empty rooms)
   getActivePublicRooms() {
     return Array.from(this.rooms.values())
-      .filter(r => !r.isPrivate)
+      .filter(r => !r.isPrivate && r.participants && r.participants.size > 0 && !r.emptySince)
       .map(r => ({
         roomId: r.roomId,
         roomCode: r.roomCode,
         roomName: r.roomName,
         participantCount: r.participants.size,
-        currentVideoId: r.currentVideoId,
+        currentVideoId: r.currentVideoId || r.videoId || null,
+        currentVideoTitle: r.currentVideoTitle || r.videoTitle || null,
         isPlaying: r.isPlaying,
         isPrivate: false
       }));

@@ -347,44 +347,108 @@ export default function LandingPage() {
         </div>
 
         {/* Featured Public Rooms */}
-        <div id="active-rooms" className="mt-16 w-full max-w-4xl text-left">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-display text-xl font-bold text-white flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#22C55E] animate-pulse"></span>
-              Active Public Watch Parties
-            </h3>
-            <span className="text-xs text-[#AAAAAA] font-mono">{activeRooms.length} rooms live</span>
+        <div id="active-rooms" className="mt-16 w-full max-w-5xl text-left">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 rounded-full bg-[#22C55E] shadow-[0_0_12px_#22c55e] animate-pulse"></div>
+              <h3 className="font-display text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+                Active Public Watch Parties
+              </h3>
+            </div>
+            <span className="text-xs text-[#AAAAAA] font-mono bg-white/[0.05] border border-white/10 px-3 py-1 rounded-full">
+              {activeRooms.length} {activeRooms.length === 1 ? 'Party' : 'Parties'} Live
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {activeRooms.map((r) => (
-              <div 
-                key={r.roomId}
-                onClick={() => {
-                  setJoinCodeInput(r.roomCode);
-                  setActiveTab('join');
-                }}
-                className="p-4 rounded-xl bg-[#121212] hover:bg-[#181818] border border-white/10 hover:border-[#FF0000]/40 transition-all cursor-pointer flex items-center justify-between gap-4"
-              >
-                <div className="space-y-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-white truncate">{r.roomName}</span>
-                    <span className="text-[10px] font-mono text-[#FF8080] bg-[#FF0000]/10 px-2 py-0.5 rounded border border-[#FF0000]/20 font-semibold">
-                      {r.roomCode}
-                    </span>
+          {activeRooms.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {activeRooms.map((r) => {
+                const bannerBg = r.currentVideoId 
+                  ? `https://img.youtube.com/vi/${r.currentVideoId}/hqdefault.jpg`
+                  : '/default-poster.jpg';
+
+                return (
+                  <div 
+                    key={r.roomId}
+                    onClick={() => {
+                      setJoinCodeInput(r.roomCode);
+                      setActiveTab('join');
+                    }}
+                    className="relative bg-[#121212]/90 hover:bg-[#161616] border border-white/10 hover:border-[#FF0000]/60 rounded-2xl overflow-hidden shadow-xl hover:shadow-[0_0_35px_rgba(255,0,0,0.35)] transition-all duration-300 group cursor-pointer hover:-translate-y-1.5 flex flex-col select-none"
+                  >
+                    {/* Animated Party Header Banner */}
+                    <div className="relative h-36 w-full overflow-hidden bg-black">
+                      <img 
+                        src={bannerBg} 
+                        alt={r.roomName}
+                        className="w-full h-full object-cover object-center opacity-75 group-hover:scale-110 transition-transform duration-700"
+                        onError={(e) => { e.target.src = '/default-poster.jpg'; }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-[#121212]/60 to-black/40"></div>
+
+                      {/* Top Badges */}
+                      <div className="absolute top-3 inset-x-3 flex items-center justify-between z-10">
+                        <span className="flex items-center gap-1.5 bg-[#FF0000] text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-lg shadow-[#FF0000]/40 border border-white/20 animate-pulse">
+                          <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
+                          <span>Live Party</span>
+                        </span>
+
+                        <span className="font-mono text-xs font-bold text-amber-300 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-full border border-amber-400/40 shadow-md">
+                          🔑 {r.roomCode}
+                        </span>
+                      </div>
+
+                      {/* Party Soundwave Equalizer Animation */}
+                      <div className="absolute bottom-3 left-4 flex items-end gap-1 z-10 opacity-85">
+                        <span className="w-1 h-3 bg-[#FF0000] rounded-full animate-bounce"></span>
+                        <span className="w-1 h-5 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
+                        <span className="w-1 h-4 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
+                        <span className="w-1 h-6 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.45s' }}></span>
+                      </div>
+                    </div>
+
+                    {/* Party Card Content */}
+                    <div className="p-4 flex flex-col gap-3 flex-1 justify-between">
+                      <div className="space-y-1">
+                        <h4 className="text-base font-extrabold text-white group-hover:text-[#FF4D4D] transition-colors truncate">
+                          {r.roomName}
+                        </h4>
+                        <p className="text-xs text-slate-300 truncate flex items-center gap-1.5">
+                          <span>{r.currentVideoTitle ? `🎵 ${r.currentVideoTitle}` : '🍿 Party Lobby • Ready to Watch'}</span>
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-white/[0.06]">
+                        <div className="flex items-center gap-2 text-xs font-mono text-slate-300">
+                          <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse"></span>
+                          <span className="font-semibold text-white">{r.participantCount || 1} watching</span>
+                          <span className="text-[#666]">•</span>
+                          <span className="text-[#4ade80]">Real-time Sync</span>
+                        </div>
+
+                        <button 
+                          className="px-4 py-2 rounded-xl bg-[#FF0000] hover:bg-[#CC0000] group-hover:shadow-[0_0_20px_rgba(255,0,0,0.5)] text-xs font-extrabold text-white flex items-center gap-1.5 transition-all cursor-pointer shadow-md group-hover:scale-105"
+                        >
+                          <span>Join Party</span>
+                          <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-xs text-[#AAAAAA] flex items-center gap-2 font-mono">
-                    <span>{r.participantCount} watching</span>
-                    <span>•</span>
-                    <span className="text-emerald-400">Live Sync</span>
-                  </p>
-                </div>
-                <button className="px-3.5 py-1.5 rounded-lg bg-[#FF0000] hover:bg-[#CC0000] text-xs font-semibold text-white shrink-0">
-                  Join Room
-                </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="p-8 text-center flex flex-col items-center justify-center gap-3 rounded-2xl bg-[#121212]/80 border border-dashed border-white/15 my-2">
+              <div className="w-14 h-14 rounded-2xl bg-[#FF0000]/15 border border-[#FF0000]/30 text-[#FF0000] flex items-center justify-center text-2xl animate-pulse">
+                🎉
               </div>
-            ))}
-          </div>
+              <div className="space-y-1 max-w-sm">
+                <h4 className="text-base font-extrabold text-white">No Public Parties Live</h4>
+                <p className="text-xs text-[#AAAAAA]">Create your public watch party above to be featured here live!</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Feature Cards Grid */}
