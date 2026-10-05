@@ -369,6 +369,10 @@ class RoomManager {
 
   // Assign Role (HOST action only)
   assignRole(socketId, targetUserId, newRole) {
+    if (newRole === 'HOST') {
+      return this.transferHost(socketId, targetUserId);
+    }
+
     const userInfo = this.getUserBySocket(socketId);
     if (!userInfo) {
       return { error: 'Unauthorized: User not found in room.' };
@@ -380,7 +384,7 @@ class RoomManager {
       return { error: 'Permission Denied: Only the Host can assign participant roles.' };
     }
 
-    if (!['MODERATOR', 'PARTICIPANT'].includes(newRole)) {
+    if (!['HOST', 'MODERATOR', 'PARTICIPANT'].includes(newRole)) {
       return { error: 'Invalid role specified.' };
     }
 

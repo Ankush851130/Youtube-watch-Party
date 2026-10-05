@@ -186,6 +186,24 @@ export function SocketProvider({ children }) {
       addToast(data.message || `${data.username} is now a ${data.role}`, 'info');
     });
 
+    newSocket.on('host_transferred', (data) => {
+      setRoom(prev => prev ? {
+        ...prev,
+        hostId: data.hostId || data.newHostId,
+        participants: data.participants
+      } : null);
+      setUser(prev => {
+        if (!prev) return null;
+        if (prev.userId === data.newHostId) {
+          return { ...prev, role: 'HOST' };
+        } else if (prev.role === 'HOST') {
+          return { ...prev, role: 'MODERATOR' };
+        }
+        return prev;
+      });
+      addToast(data.message || `👑 ${data.newHostName || 'A participant'} is now the Host!`, 'success');
+    });
+
     newSocket.on('participant_removed', (data) => {
       setRoom(prev => prev ? { ...prev, participants: data.participants } : null);
       addToast(data.message || `${data.username} was removed`, 'warning');
@@ -271,6 +289,10 @@ export function SocketProvider({ children }) {
     if (socketRef.current) socketRef.current.emit('assign_role', { targetUserId, role });
   };
 
+  const transferHostSocket = (targetUserId) => {
+    if (socketRef.current) socketRef.current.emit('transfer_host', { targetUserId });
+  };
+
   const removeParticipantSocket = (targetUserId) => {
     if (socketRef.current) socketRef.current.emit('remove_participant', { targetUserId });
   };
@@ -307,6 +329,7 @@ export function SocketProvider({ children }) {
       changeVideoSocket,
       changeSpeedSocket,
       assignRoleSocket,
+      transferHostSocket,
       removeParticipantSocket,
       sendMessageSocket,
       sendEmojiSocket,

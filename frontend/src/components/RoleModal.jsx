@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSocket } from '../context/SocketContext';
 
 export default function RoleModal({ isOpen, onClose, targetUser, defaultRole = 'MODERATOR' }) {
-  const { assignRoleSocket, addToast } = useSocket();
+  const { assignRoleSocket, transferHostSocket, addToast } = useSocket();
   const [selectedRole, setSelectedRole] = useState(defaultRole);
 
   useEffect(() => {
@@ -12,8 +12,12 @@ export default function RoleModal({ isOpen, onClose, targetUser, defaultRole = '
   if (!isOpen || !targetUser) return null;
 
   const handleSave = () => {
-    assignRoleSocket(targetUser.userId, selectedRole);
-    addToast(`Role updated for ${targetUser.username}`, 'info');
+    if (selectedRole === 'HOST') {
+      transferHostSocket(targetUser.userId);
+    } else {
+      assignRoleSocket(targetUser.userId, selectedRole);
+      addToast(`Role updated for ${targetUser.username}`, 'info');
+    }
     onClose();
   };
 
@@ -37,6 +41,30 @@ export default function RoleModal({ isOpen, onClose, targetUser, defaultRole = '
 
         {/* Radio Options */}
         <div className="flex flex-col gap-2.5">
+          <label 
+            onClick={() => setSelectedRole('HOST')}
+            className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+              selectedRole === 'HOST' 
+                ? 'bg-[#FF0000]/10 border-amber-400' 
+                : 'bg-white/[0.03] border-white/[0.08]'
+            }`}
+          >
+            <input 
+              type="radio" 
+              name="selectedRoleOption" 
+              value="HOST"
+              checked={selectedRole === 'HOST'}
+              onChange={() => setSelectedRole('HOST')}
+              className="mt-1 accent-amber-400"
+            />
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                <span>👑</span> Make Host (Full Authority)
+              </span>
+              <span className="text-[11px] text-slate-300 mt-0.5">Transfer full room ownership to this participant. You will become a Moderator.</span>
+            </div>
+          </label>
+
           <label 
             onClick={() => setSelectedRole('MODERATOR')}
             className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${

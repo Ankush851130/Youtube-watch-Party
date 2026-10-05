@@ -3,7 +3,7 @@ import { useSocket } from '../context/SocketContext';
 import { getRecommendationsApi } from '../services/api';
 
 export default function SidebarPanel({ onOpenShare, onOpenRoleModal }) {
-  const { room, user, assignRoleSocket, removeParticipantSocket, messages, sendMessageSocket, changeVideoSocket, addToast } = useSocket();
+  const { room, user, assignRoleSocket, transferHostSocket, removeParticipantSocket, messages, sendMessageSocket, changeVideoSocket, addToast } = useSocket();
   const [activeTab, setActiveTab] = useState('recommendations'); // 'recommendations' | 'people' | 'chat'
   const [chatInputText, setChatInputText] = useState('');
   const [openUserDropdown, setOpenUserDropdown] = useState(null);
@@ -64,6 +64,13 @@ export default function SidebarPanel({ onOpenShare, onOpenRoleModal }) {
   const handleRoleAction = (targetUser, newRole) => {
     setOpenUserDropdown(null);
     onOpenRoleModal(targetUser, newRole);
+  };
+
+  const handleTransferHostAction = (targetUser) => {
+    setOpenUserDropdown(null);
+    if (window.confirm(`👑 Are you sure you want to transfer Host leadership to ${targetUser.username}? You will become a Moderator.`)) {
+      transferHostSocket(targetUser.userId);
+    }
   };
 
   const handleRemoveAction = (targetUser) => {
@@ -236,6 +243,12 @@ export default function SidebarPanel({ onOpenShare, onOpenRoleModal }) {
 
                           {openUserDropdown === p.userId && (
                             <div className="absolute right-0 mt-1 w-48 rounded-xl bg-[#202020] border border-white/10 shadow-2xl p-1 z-30 text-xs">
+                              <button 
+                                onClick={() => handleTransferHostAction(p)}
+                                className="w-full text-left px-3 py-2 text-amber-400 font-semibold hover:bg-amber-400/10 rounded-lg cursor-pointer flex items-center gap-1.5"
+                              >
+                                <span>👑 Make Host</span>
+                              </button>
                               {p.role === 'MODERATOR' ? (
                                 <button 
                                   onClick={() => handleRoleAction(p, 'PARTICIPANT')}

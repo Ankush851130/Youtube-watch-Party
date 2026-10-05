@@ -165,6 +165,25 @@ export function setupSocketHandlers(io) {
       });
     });
 
+    // ================= 7B. TRANSFER HOST =================
+    socket.on('transfer_host', (payload) => {
+      const { targetUserId } = payload || {};
+      const result = roomManager.transferHost(socket.id, targetUserId);
+
+      if (result.error) {
+        socket.emit('action_error', { message: result.error, action: 'transfer_host' });
+        return;
+      }
+
+      io.to(result.room.roomId).emit('host_transferred', {
+        hostId: result.newHostId,
+        newHostId: result.newHostId,
+        newHostName: result.newHostName,
+        participants: result.participants,
+        message: `👑 ${result.newHostName} is now the Host of this Watch Party!`
+      });
+    });
+
     // ================= 8. REMOVE PARTICIPANT =================
     socket.on('remove_participant', (payload) => {
       const { targetUserId } = payload || {};
