@@ -271,14 +271,12 @@ class RoomManager {
     if (action === 'change_video' && videoId) {
       room.currentVideoId = videoId;
       room.videoId = videoId;
-      if (videoTitle) {
-        room.currentVideoTitle = videoTitle;
-        room.videoTitle = videoTitle;
-      }
-      if (channelTitle) {
-        room.currentChannelTitle = channelTitle;
-        room.channelTitle = channelTitle;
-      }
+      const newTitle = videoTitle || `YouTube Video (${videoId})`;
+      const newChannel = channelTitle || 'YouTube Stream';
+      room.currentVideoTitle = newTitle;
+      room.videoTitle = newTitle;
+      room.currentChannelTitle = newChannel;
+      room.channelTitle = newChannel;
       room.currentTime = 0;
       room.isPlaying = isPlaying !== undefined ? isPlaying : true;
       room.lastUpdated = now;

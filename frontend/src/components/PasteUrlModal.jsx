@@ -9,7 +9,7 @@ export default function PasteUrlModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const videoId = extractYouTubeId(urlInput);
 
@@ -19,8 +19,28 @@ export default function PasteUrlModal({ isOpen, onClose }) {
     }
 
     setErrorMsg('');
-    changeVideoSocket(videoId);
-    addToast('Video updated via YouTube URL!', 'success');
+    
+    let videoTitle = `YouTube Video (${videoId})`;
+    let channelTitle = 'YouTube Stream';
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      const res = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.title) videoTitle = data.title;
+        if (data.author_name) channelTitle = data.author_name;
+      }
+    } catch (err) {
+      // Fallback to auto player title sync if oEmbed fails
+    }
+
+    changeVideoSocket(videoId, videoTitle, channelTitle);
+    addToast(`Video updated to "${videoTitle}"`, 'success');
     setUrlInput('');
     onClose();
   };
