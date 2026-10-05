@@ -172,6 +172,14 @@ export function SocketProvider({ children }) {
       addToast(`Video changed to "${newVideoTitle || 'synchronized stream'}"`, 'info');
     });
 
+    newSocket.on('speed_changed', (data) => {
+      setRoom(prev => prev ? {
+        ...prev,
+        playbackSpeed: data.playbackSpeed
+      } : null);
+      addToast(data.message || `Playback speed changed to ${data.playbackSpeed}x`, 'info');
+    });
+
     newSocket.on('role_assigned', (data) => {
       setRoom(prev => prev ? { ...prev, participants: data.participants } : null);
       setUser(prev => prev && prev.userId === data.userId ? { ...prev, role: data.role } : prev);
@@ -255,6 +263,10 @@ export function SocketProvider({ children }) {
     if (socketRef.current) socketRef.current.emit('change_video', { videoId, videoTitle, channelTitle });
   };
 
+  const changeSpeedSocket = (playbackSpeed) => {
+    if (socketRef.current) socketRef.current.emit('change_speed', { playbackSpeed });
+  };
+
   const assignRoleSocket = (targetUserId, role) => {
     if (socketRef.current) socketRef.current.emit('assign_role', { targetUserId, role });
   };
@@ -293,6 +305,7 @@ export function SocketProvider({ children }) {
       pauseSocket,
       seekSocket,
       changeVideoSocket,
+      changeSpeedSocket,
       assignRoleSocket,
       removeParticipantSocket,
       sendMessageSocket,

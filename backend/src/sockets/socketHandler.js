@@ -231,6 +231,23 @@ export function setupSocketHandlers(io) {
       });
     });
 
+    // ================= 11. CHANGE PLAYBACK SPEED =================
+    socket.on('change_speed', (payload) => {
+      const { playbackSpeed } = payload || {};
+      const result = roomManager.changeSpeed(socket.id, playbackSpeed);
+
+      if (result.error) {
+        socket.emit('action_error', { message: result.error, action: 'change_speed' });
+        return;
+      }
+
+      io.to(result.room.roomId).emit('speed_changed', {
+        playbackSpeed: result.playbackSpeed,
+        updatedBy: result.updatedBy,
+        message: `Playback speed set to ${result.playbackSpeed}x by ${result.updatedBy}`
+      });
+    });
+
     // ================= 11. LEAVE ROOM =================
     socket.on('leave_room', () => {
       handleDisconnect(socket, io);

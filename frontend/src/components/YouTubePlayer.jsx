@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useSocket } from '../context/SocketContext';
 
 export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenSearch }) {
-  const { room, user, connectionState, playSocket, pauseSocket, seekSocket, changeVideoSocket, floatingEmojis, addToast } = useSocket();
+  const { room, user, connectionState, playSocket, pauseSocket, seekSocket, changeVideoSocket, changeSpeedSocket, floatingEmojis, addToast } = useSocket();
 
   const containerRef = useRef(null);
   const playerRef = useRef(null);
@@ -405,6 +405,25 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
     return () => clearTimeout(timer);
   }, [isPlaying, currentTime]);
 
+  // Sync Video Playback Speed changes from remote socket across all devices
+  useEffect(() => {
+    const targetSpeed = room?.playbackSpeed || 1;
+    setPlaybackSpeed(targetSpeed);
+
+    if (playerRef.current && isApiLoadedRef.current) {
+      try {
+        if (typeof playerRef.current.getPlaybackRate === 'function') {
+          const currentRate = playerRef.current.getPlaybackRate();
+          if (currentRate !== targetSpeed && typeof playerRef.current.setPlaybackRate === 'function') {
+            playerRef.current.setPlaybackRate(targetSpeed);
+          }
+        }
+      } catch (err) {
+        console.warn('Error setting synced playback rate:', err);
+      }
+    }
+  }, [room?.playbackSpeed]);
+
   // Track progress bar time locally
   useEffect(() => {
     const interval = setInterval(() => {
@@ -553,18 +572,24 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
     }
   };
 
-  // Change Video Playback Speed
+  // Change Video Playback Speed (Host / Moderator action - synced via socket to all devices)
   const handleSpeedChange = (newSpeed) => {
+    if (!canControl) {
+      addToast("Playback speed control is restricted to Host or Moderator.", "warning");
+      return;
+    }
+
     setPlaybackSpeed(newSpeed);
     setIsSpeedMenuOpen(false);
+
+    // Broadcast speed change to all devices in the room via socket
+    changeSpeedSocket(newSpeed);
 
     if (playerRef.current) {
       try {
         if (typeof playerRef.current.setPlaybackRate === 'function') {
           playerRef.current.setPlaybackRate(newSpeed);
         }
-        const label = newSpeed === 1 ? '1.0x (Normal)' : `${newSpeed}x`;
-        addToast(`Video speed set to ${label}`, 'success');
       } catch (err) {
         console.warn('Set playback rate error:', err);
       }
@@ -714,7 +739,7 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
         }`}>
         <span className="w-2 h-2 rounded-full bg-[#FF0000]"></span>
         <span className="text-white font-semibold">YouTube Stream</span>
-        <span className="text-[#FF8080] font-mono text-[11px] font-bold">• {qualityLabelMap[quality] || 'HD'}</span>
+        <span className="text-[#FF8080] font-mono text-[11px] font-bold">• Auto (Adaptive)</span>
         <span className="text-amber-400 font-mono text-[11px] font-bold">• {playbackSpeed}x</span>
       </div>
 
@@ -856,44 +881,13 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
               )}
             </div>
 
-            {/* QUALITY SELECTOR MENU & BUTTON */}
-            <div ref={qualityMenuRef} className="relative">
-              <button
-                onClick={() => setIsQualityMenuOpen(!isQualityMenuOpen)}
-                className="flex items-center gap-1 px-2.5 py-1 rounded bg-white/10 hover:bg-[#FF0000]/30 border border-white/15 text-xs font-mono font-bold text-white tracking-wide transition-all cursor-pointer shadow-sm hover:scale-105"
-                title="Change Video Quality"
-              >
-                <span className="material-symbols-outlined text-[15px] text-[#FF4D4D]">settings</span>
-                <span>{qualityLabelMap[quality] || 'Quality'}</span>
-                <span className="material-symbols-outlined text-[14px] text-[#AAAAAA]">expand_less</span>
-              </button>
-
-              {/* Quality Selection Popup Menu */}
-              {isQualityMenuOpen && (
-                <div className="absolute bottom-full right-0 mb-2 w-48 bg-[#161616]/95 border border-white/20 rounded-xl shadow-2xl p-1.5 z-50 text-xs flex flex-col gap-1 backdrop-blur-2xl">
-                  <div className="px-2.5 py-1 text-[10px] font-mono text-[#AAAAAA] uppercase font-bold border-b border-white/10 flex items-center justify-between">
-                    <span>Playback Quality</span>
-                    <span className="text-[#FF8080]">YouTube</span>
-                  </div>
-                  <div className="flex flex-col gap-0.5 max-h-56 overflow-y-auto pt-1">
-                    {qualityOptions.map((opt) => (
-                      <button
-                        key={opt.value}
-                        onClick={() => handleQualityChange(opt.value)}
-                        className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left font-medium transition-all cursor-pointer ${quality === opt.value
-                            ? 'bg-[#FF0000] text-white font-bold shadow-md shadow-[#FF0000]/30'
-                            : 'text-slate-200 hover:text-white hover:bg-white/10'
-                          }`}
-                      >
-                        <span>{opt.label}</span>
-                        {quality === opt.value && (
-                          <span className="material-symbols-outlined text-[14px]">check</span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+            {/* AUTOMATIC ADAPTIVE QUALITY BADGE */}
+            <div
+              className="flex items-center gap-1 px-2.5 py-1 rounded bg-white/10 border border-white/15 text-xs font-mono font-bold text-white tracking-wide select-none"
+              title="Video quality automatically adjusts based on each device's internet connection speed"
+            >
+              <span className="material-symbols-outlined text-[15px] text-[#FF4D4D]">hd</span>
+              <span>Auto HD</span>
             </div>
 
             <button onClick={handleToggleFullscreen} className="p-1.5 hover:text-white transition-colors text-slate-[#AAAAAA] hover:text-white cursor-pointer" title="Fullscreen">

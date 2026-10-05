@@ -27,6 +27,7 @@ class RoomManager {
       currentVideoId: 'GG1_DsScm6U',
       currentVideoTitle: 'Planet Earth III — Mountain Dynasties',
       currentChannelTitle: 'BBC Earth',
+      playbackSpeed: 1,
       isPlaying: true,
       currentTime: 15,
       lastUpdated: Date.now(),
@@ -77,6 +78,7 @@ class RoomManager {
       videoTitle: 'Planet Earth III — Mountain Dynasties',
       currentChannelTitle: 'BBC Earth',
       channelTitle: 'BBC Earth',
+      playbackSpeed: 1,
       isPlaying: false,
       currentTime: 0,
       lastUpdated: now,
@@ -154,12 +156,13 @@ class RoomManager {
     }));
   }
 
-  // Calculate synchronized current time
+  // Calculate synchronized current time taking playback speed into account
   getCalculatedCurrentTime(room) {
     if (!room) return 0;
     if (!room.isPlaying) return room.currentTime;
     
-    const elapsedSeconds = (Date.now() - room.lastUpdated) / 1000;
+    const speed = room.playbackSpeed || 1;
+    const elapsedSeconds = ((Date.now() - room.lastUpdated) / 1000) * speed;
     return Math.max(0, room.currentTime + elapsedSeconds);
   }
 
@@ -330,6 +333,37 @@ class RoomManager {
         triggeredBy: participant.username,
         action
       }
+    };
+  }
+
+  // Change Video Playback Speed
+  changeSpeed(socketId, playbackSpeed) {
+    const userInfo = this.getUserBySocket(socketId);
+    if (!userInfo) {
+      return { error: 'Unauthorized: User not found in room.' };
+    }
+
+    const { room, participant } = userInfo;
+
+    if (!this.canControlPlayback(participant)) {
+      return { error: 'Permission Denied: Only Host or Moderator can change playback speed.' };
+    }
+
+    const speedNum = parseFloat(playbackSpeed);
+    if (isNaN(speedNum) || speedNum < 0.25 || speedNum > 2.0) {
+      return { error: 'Invalid playback speed value.' };
+    }
+
+    // Update room playback speed and adjust current time reference
+    room.currentTime = this.getCalculatedCurrentTime(room);
+    room.lastUpdated = Date.now();
+    room.playbackSpeed = speedNum;
+
+    return {
+      success: true,
+      room,
+      playbackSpeed: speedNum,
+      updatedBy: participant.username
     };
   }
 
