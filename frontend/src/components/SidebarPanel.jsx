@@ -56,8 +56,8 @@ export default function SidebarPanel({ onOpenShare, onOpenRoleModal }) {
     setChatInputText('');
   };
 
-  const handlePlayRecommendation = (videoId, title) => {
-    changeVideoSocket(videoId, title);
+  const handlePlayRecommendation = (videoId, title, channelTitle) => {
+    changeVideoSocket(videoId, title, channelTitle);
     addToast(`Video changed to "${title}"`, 'success');
   };
 
@@ -138,7 +138,7 @@ export default function SidebarPanel({ onOpenShare, onOpenRoleModal }) {
               {recommendations.map((item) => (
                 <div 
                   key={item.videoId}
-                  onClick={() => handlePlayRecommendation(item.videoId, item.title)}
+                  onClick={() => handlePlayRecommendation(item.videoId, item.title, item.channelTitle)}
                   className="group flex items-start gap-3 p-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.07] border border-white/[0.05] hover:border-white/15 transition-all cursor-pointer"
                 >
                   <div className="relative w-28 aspect-video rounded-lg overflow-hidden bg-slate-800 shrink-0 border border-white/10 group-hover:scale-105 transition-transform">
@@ -160,7 +160,7 @@ export default function SidebarPanel({ onOpenShare, onOpenRoleModal }) {
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handlePlayRecommendation(item.videoId, item.title);
+                          handlePlayRecommendation(item.videoId, item.title, item.channelTitle);
                         }}
                         className="px-2.5 py-1 rounded-md bg-[#FF0000] hover:bg-[#CC0000] text-white text-[11px] font-semibold flex items-center gap-1 shadow transition-all"
                       >

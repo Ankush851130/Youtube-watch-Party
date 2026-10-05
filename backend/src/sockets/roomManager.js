@@ -26,6 +26,7 @@ class RoomManager {
       hostId,
       currentVideoId: 'GG1_DsScm6U',
       currentVideoTitle: 'Planet Earth III — Mountain Dynasties',
+      currentChannelTitle: 'BBC Earth',
       isPlaying: true,
       currentTime: 15,
       lastUpdated: Date.now(),
@@ -72,6 +73,8 @@ class RoomManager {
       videoId: 'GG1_DsScm6U',
       currentVideoTitle: 'Planet Earth III — Mountain Dynasties',
       videoTitle: 'Planet Earth III — Mountain Dynasties',
+      currentChannelTitle: 'BBC Earth',
+      channelTitle: 'BBC Earth',
       isPlaying: false,
       currentTime: 0,
       lastUpdated: now,
@@ -204,6 +207,7 @@ class RoomManager {
         hostId: room.hostId,
         videoId: room.currentVideoId,
         videoTitle: room.currentVideoTitle || room.videoTitle || 'Planet Earth III — Mountain Dynasties',
+        channelTitle: room.currentChannelTitle || room.channelTitle || 'YouTube Stream',
         isPlaying: room.isPlaying,
         currentTime: computedTime,
         lastUpdated: room.lastUpdated,
@@ -262,7 +266,7 @@ class RoomManager {
     }
 
     const now = Date.now();
-    const { action, videoId, videoTitle, currentTime, isPlaying } = payload;
+    const { action, videoId, videoTitle, channelTitle, currentTime, isPlaying } = payload;
 
     if (action === 'change_video' && videoId) {
       room.currentVideoId = videoId;
@@ -270,6 +274,10 @@ class RoomManager {
       if (videoTitle) {
         room.currentVideoTitle = videoTitle;
         room.videoTitle = videoTitle;
+      }
+      if (channelTitle) {
+        room.currentChannelTitle = channelTitle;
+        room.channelTitle = channelTitle;
       }
       room.currentTime = 0;
       room.isPlaying = isPlaying !== undefined ? isPlaying : true;
@@ -285,6 +293,10 @@ class RoomManager {
         room.currentVideoTitle = videoTitle;
         room.videoTitle = videoTitle;
       }
+      if (channelTitle) {
+        room.currentChannelTitle = channelTitle;
+        room.channelTitle = channelTitle;
+      }
       room.lastUpdated = now;
     }
 
@@ -294,6 +306,7 @@ class RoomManager {
       broadcastState: {
         videoId: room.currentVideoId || room.videoId,
         videoTitle: room.currentVideoTitle || room.videoTitle || 'YouTube Stream',
+        channelTitle: room.currentChannelTitle || room.channelTitle || 'YouTube Channel',
         isPlaying: room.isPlaying,
         currentTime: room.currentTime,
         lastUpdated: room.lastUpdated,

@@ -73,6 +73,7 @@ export function SocketProvider({ children }) {
       if (data) {
         data.videoId = data.videoId || data.currentVideoId;
         data.videoTitle = data.videoTitle || data.currentVideoTitle;
+        data.channelTitle = data.channelTitle || data.currentChannelTitle;
       }
       setRoom(data);
       if (data?.user) {
@@ -90,6 +91,7 @@ export function SocketProvider({ children }) {
         ...prev,
         videoId: data.videoId || data.currentVideoId || prev.videoId,
         videoTitle: data.videoTitle || data.currentVideoTitle || prev.videoTitle,
+        channelTitle: data.channelTitle || data.currentChannelTitle || prev.channelTitle,
         isPlaying: data.isPlaying,
         currentTime: data.currentTime,
         lastUpdated: data.lastUpdated,
@@ -116,6 +118,7 @@ export function SocketProvider({ children }) {
         ...prev,
         videoId: data.videoId || prev.videoId,
         videoTitle: data.videoTitle || prev.videoTitle,
+        channelTitle: data.channelTitle || prev.channelTitle,
         isPlaying: true,
         currentTime: data.currentTime,
         lastUpdated: data.lastUpdated
@@ -127,6 +130,7 @@ export function SocketProvider({ children }) {
         ...prev,
         videoId: data.videoId || prev.videoId,
         videoTitle: data.videoTitle || prev.videoTitle,
+        channelTitle: data.channelTitle || prev.channelTitle,
         isPlaying: false,
         currentTime: data.currentTime,
         lastUpdated: data.lastUpdated
@@ -138,6 +142,7 @@ export function SocketProvider({ children }) {
         ...prev,
         videoId: data.videoId || prev.videoId,
         videoTitle: data.videoTitle || prev.videoTitle,
+        channelTitle: data.channelTitle || prev.channelTitle,
         currentTime: data.currentTime,
         isPlaying: data.isPlaying !== undefined ? data.isPlaying : prev.isPlaying,
         lastUpdated: data.lastUpdated
@@ -147,10 +152,12 @@ export function SocketProvider({ children }) {
     newSocket.on('change_video', (data) => {
       const newVideoId = data.videoId || data.currentVideoId;
       const newVideoTitle = data.videoTitle || data.currentVideoTitle;
+      const newChannelTitle = data.channelTitle || data.currentChannelTitle;
       setRoom(prev => prev ? {
         ...prev,
         videoId: newVideoId,
         videoTitle: newVideoTitle || prev.videoTitle,
+        channelTitle: newChannelTitle || prev.channelTitle,
         isPlaying: true,
         currentTime: 0,
         lastUpdated: data.lastUpdated
@@ -217,8 +224,8 @@ export function SocketProvider({ children }) {
     if (socketRef.current) socketRef.current.emit('seek', { currentTime, isPlaying });
   };
 
-  const changeVideoSocket = (videoId, videoTitle) => {
-    if (socketRef.current) socketRef.current.emit('change_video', { videoId, videoTitle });
+  const changeVideoSocket = (videoId, videoTitle, channelTitle) => {
+    if (socketRef.current) socketRef.current.emit('change_video', { videoId, videoTitle, channelTitle });
   };
 
   const assignRoleSocket = (targetUserId, role) => {

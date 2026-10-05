@@ -319,15 +319,16 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
     }
   }, [videoId]);
 
-  // Sync real video title from YouTube API if missing or generic
+  // Sync real video title & channel from YouTube API if missing or generic
   useEffect(() => {
     if (!playerRef.current || !isApiLoadedRef.current) return;
     try {
       const loadedData = typeof playerRef.current.getVideoData === 'function' ? playerRef.current.getVideoData() : null;
       if (loadedData?.title && canControl) {
         const currentTitle = room?.videoTitle || room?.currentVideoTitle;
-        if (!currentTitle || currentTitle === 'YouTube Video' || currentTitle.startsWith('YouTube Video (')) {
-          changeVideoSocket(videoId, loadedData.title);
+        const currentChannel = room?.channelTitle || room?.currentChannelTitle;
+        if (!currentTitle || currentTitle === 'YouTube Video' || currentTitle.startsWith('YouTube Video (') || !currentChannel) {
+          changeVideoSocket(videoId, loadedData.title, loadedData.author || 'YouTube Channel');
         }
       }
     } catch (err) {

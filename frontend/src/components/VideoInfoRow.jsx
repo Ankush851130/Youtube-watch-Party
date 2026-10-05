@@ -27,6 +27,7 @@ export default function VideoInfoRow({
   };
 
   const currentVideoTitle = room?.videoTitle || room?.currentVideoTitle || 'Planet Earth III — Mountain Dynasties';
+  const currentChannelTitle = room?.channelTitle || room?.currentChannelTitle || 'YouTube Music';
   const roomName = room?.roomName || 'Watch Party';
 
   return (
@@ -43,10 +44,13 @@ export default function VideoInfoRow({
           <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-white truncate" title={currentVideoTitle}>
             {currentVideoTitle}
           </h1>
-          <p className="text-xs sm:text-sm text-[#AAAAAA] font-normal flex flex-wrap items-center gap-2.5">
-            <span className="text-slate-200 font-medium">Playing together with {participantCount} friend{participantCount > 1 ? 's' : ''}</span>
+          <p className="text-xs sm:text-sm text-[#AAAAAA] font-normal flex flex-wrap items-center gap-2">
+            <span className="text-[#FF8080] font-semibold flex items-center gap-1">
+              <span className="material-symbols-outlined text-[16px] text-[#FF8080]">artist</span>
+              <span>{currentChannelTitle}</span>
+            </span>
             <span className="text-[#717171]">•</span>
-            <span className="text-[#FF8080] font-semibold">Ultra HD 4K</span>
+            <span className="text-slate-200 font-medium">Playing together with {participantCount} friend{participantCount > 1 ? 's' : ''}</span>
             <span className="text-[#717171]">•</span>
             <span className="text-slate-300">Synchronized Stream</span>
           </p>

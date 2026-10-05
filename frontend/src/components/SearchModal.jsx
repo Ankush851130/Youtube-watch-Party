@@ -40,7 +40,7 @@ export default function SearchModal({ isOpen, onClose }) {
 
   const handlePlayTogether = () => {
     if (!selectedVideo) return;
-    changeVideoSocket(selectedVideo.videoId, selectedVideo.title);
+    changeVideoSocket(selectedVideo.videoId, selectedVideo.title, selectedVideo.channelTitle);
     addToast(`Video changed to "${selectedVideo.title}"`, 'success');
     onClose();
   };
