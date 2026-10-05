@@ -23,8 +23,9 @@ body {
   color: #FFFFFF;
   font-family: 'Plus Jakarta Sans', sans-serif;
   background-image: 
-    radial-gradient(ellipse at 35% 25%, rgba(255, 0, 0, 0.07) 0%, transparent 60%),
-    radial-gradient(circle at 85% 35%, rgba(34, 197, 94, 0.03) 0%, transparent 40%);
+    radial-gradient(ellipse at 35% 25%, rgba(255, 0, 0, 0.08) 0%, transparent 60%),
+    radial-gradient(circle at 85% 35%, rgba(147, 51, 234, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 15% 75%, rgba(6, 182, 212, 0.05) 0%, transparent 45%);
   background-attachment: fixed;
 }
 
@@ -42,4 +43,102 @@ body {
 
 .animate-float-reaction {
   animation: floatUpFade 2.6s ease-out forwards;
+}
+
+/* Party Ambient Lights Animations */
+@keyframes partyOrb1 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+    opacity: 0.4;
+    filter: blur(90px);
+  }
+  25% {
+    transform: translate(80px, -50px) scale(1.3);
+    opacity: 0.65;
+    filter: blur(70px);
+  }
+  50% {
+    transform: translate(-50px, 80px) scale(0.9);
+    opacity: 0.45;
+    filter: blur(100px);
+  }
+  75% {
+    transform: translate(40px, 40px) scale(1.2);
+    opacity: 0.6;
+    filter: blur(80px);
+  }
+}
+
+@keyframes partyOrb2 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1.1);
+    opacity: 0.45;
+    filter: blur(80px);
+  }
+  33% {
+    transform: translate(-90px, 50px) scale(0.85);
+    opacity: 0.7;
+    filter: blur(60px);
+  }
+  66% {
+    transform: translate(60px, -70px) scale(1.25);
+    opacity: 0.35;
+    filter: blur(95px);
+  }
+}
+
+@keyframes partyOrb3 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(0.95);
+    opacity: 0.35;
+    filter: blur(100px);
+  }
+  40% {
+    transform: translate(60px, -60px) scale(1.35);
+    opacity: 0.6;
+    filter: blur(75px);
+  }
+  80% {
+    transform: translate(-70px, -40px) scale(1.05);
+    opacity: 0.5;
+    filter: blur(85px);
+  }
+}
+
+@keyframes laserSweep {
+  0%, 100% {
+    transform: rotate(-25deg) scaleY(1);
+    opacity: 0.15;
+  }
+  50% {
+    transform: rotate(25deg) scaleY(1.3);
+    opacity: 0.4;
+  }
+}
+
+@keyframes partySparkle {
+  0% { transform: translateY(0px) scale(0.7); opacity: 0; }
+  50% { opacity: 0.8; transform: translateY(-40px) scale(1.2); }
+  100% { transform: translateY(-90px) scale(0.4); opacity: 0; }
+}
+
+.animate-party-orb-1 {
+  animation: partyOrb1 9s ease-in-out infinite alternate;
+}
+
+.animate-party-orb-2 {
+  animation: partyOrb2 11s ease-in-out infinite alternate;
+}
+
+.animate-party-orb-3 {
+  animation: partyOrb3 13s ease-in-out infinite alternate;
+}
+
+.animate-laser-beam {
+  animation: laserSweep 7s ease-in-out infinite alternate;
+  transform-origin: top center;
+}
+
+.animate-party-sparkle {
+  animation: partySparkle 5s ease-in-out infinite;
 }

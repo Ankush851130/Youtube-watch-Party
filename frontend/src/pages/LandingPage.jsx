@@ -21,6 +21,8 @@ export default function LandingPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [partyLightsOn, setPartyLightsOn] = useState(true);
+
   useEffect(() => {
     fetchRooms();
   }, []);
@@ -103,19 +105,64 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white flex flex-col selection:bg-[#FF0000]/30">
+    <div className="relative min-h-screen bg-[#0A0A0A] text-white flex flex-col selection:bg-[#FF0000]/30 overflow-hidden">
+      {/* Dynamic Animated Party Lights & Ambient Spotlight Layer */}
+      {partyLightsOn && (
+        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+          {/* Party Orb 1: Neon Crimson Red */}
+          <div className="absolute -top-10 left-1/4 w-[500px] h-[500px] bg-[#FF0000]/25 rounded-full blur-[110px] animate-party-orb-1"></div>
+
+          {/* Party Orb 2: Disco Violet/Purple */}
+          <div className="absolute top-32 right-1/4 w-[550px] h-[550px] bg-[#9333EA]/25 rounded-full blur-[120px] animate-party-orb-2"></div>
+
+          {/* Party Orb 3: Electric Cyan/Blue */}
+          <div className="absolute bottom-20 left-1/3 w-[450px] h-[450px] bg-[#06B6D4]/20 rounded-full blur-[95px] animate-party-orb-3"></div>
+
+          {/* Party Orb 4: Hot Neon Pink */}
+          <div className="absolute top-1/2 right-10 w-[400px] h-[400px] bg-[#EC4899]/20 rounded-full blur-[90px] animate-party-orb-1"></div>
+
+          {/* Party Orb 5: Party Amber/Gold */}
+          <div className="absolute bottom-10 right-1/3 w-[350px] h-[350px] bg-[#F59E0B]/15 rounded-full blur-[85px] animate-party-orb-2"></div>
+
+          {/* Party Laser Spotlight Beams */}
+          <div className="absolute -top-32 left-1/3 w-[320px] h-[700px] bg-gradient-to-b from-[#FF0000]/25 via-[#9333EA]/15 to-transparent blur-3xl animate-laser-beam"></div>
+          <div className="absolute -top-32 right-1/3 w-[320px] h-[700px] bg-gradient-to-b from-[#06B6D4]/20 via-[#EC4899]/15 to-transparent blur-3xl animate-laser-beam" style={{ animationDelay: '-3.5s' }}></div>
+
+          {/* Floating Party Sparkles */}
+          <div className="absolute top-1/4 left-16 text-2xl opacity-60 animate-party-sparkle">✨</div>
+          <div className="absolute top-1/3 right-20 text-3xl opacity-70 animate-party-sparkle" style={{ animationDelay: '1.5s' }}>🍿</div>
+          <div className="absolute bottom-1/3 left-24 text-2xl opacity-60 animate-party-sparkle" style={{ animationDelay: '3s' }}>🎵</div>
+          <div className="absolute top-1/2 left-10 text-2xl opacity-50 animate-party-sparkle" style={{ animationDelay: '0.8s' }}>🎉</div>
+          <div className="absolute bottom-1/4 right-28 text-3xl opacity-65 animate-party-sparkle" style={{ animationDelay: '2.2s' }}>🎬</div>
+        </div>
+      )}
+
       {/* Top Navbar */}
-      <header className="w-full bg-[#0E0E0E]/90 border-b border-white/[0.08] backdrop-blur-md">
+      <header className="relative z-10 w-full bg-[#0E0E0E]/90 border-b border-white/[0.08] backdrop-blur-md">
         <div className="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-[#FF0000] flex items-center justify-center text-white font-extrabold shadow-lg shadow-[#FF0000]/30 text-sm">
               ▶
             </div>
-            <span className="font-display font-extrabold tracking-tight text-lg text-white">
-              WATCHTOGETHER <span className="text-xs font-mono font-medium text-[#FF4D4D] px-1.5 py-0.5 rounded bg-[#FF0000]/10 border border-[#FF0000]/20">Cinema</span>
+            <span className="font-display font-extrabold tracking-tight text-lg text-white flex items-center gap-2">
+              WATCHTOGETHER <span className="text-xs font-mono font-medium text-[#FF4D4D] px-1.5 py-0.5 rounded bg-[#FF0000]/10 border border-[#FF0000]/20">Party Cinema</span>
             </span>
           </div>
           <div className="flex items-center gap-3">
+            {/* Party Ambient Lights Toggle Button */}
+            <button
+              onClick={() => setPartyLightsOn(!partyLightsOn)}
+              className={`text-xs font-semibold px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer ${
+                partyLightsOn 
+                  ? 'bg-gradient-to-r from-[#FF0000]/20 via-[#9333EA]/20 to-[#06B6D4]/20 border-[#FF0000]/40 text-white shadow-md shadow-[#FF0000]/20' 
+                  : 'bg-white/[0.04] border-white/10 text-slate-400 hover:text-white'
+              }`}
+              title="Toggle Party Ambient Spotlights"
+            >
+              <span className="material-symbols-outlined text-[16px] text-amber-300 animate-pulse">auto_awesome</span>
+              <span>Party Lights {partyLightsOn ? 'ON' : 'OFF'}</span>
+            </button>
+
             <a 
               href="#active-rooms"
               className="text-xs font-medium text-slate-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/[0.06] transition-colors"
@@ -127,17 +174,23 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <main className="flex-1 max-w-[1400px] mx-auto px-6 py-12 flex flex-col items-center justify-center text-center">
+      <main className="relative z-10 flex-1 max-w-[1400px] mx-auto px-6 py-12 flex flex-col items-center justify-center text-center">
+
+        {/* Hero Party Badge */}
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#FF0000]/20 via-[#9333EA]/20 to-[#06B6D4]/20 border border-[#FF0000]/30 text-white text-xs font-semibold tracking-wide mb-6 shadow-xl backdrop-blur-md">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#FF0000] animate-ping"></span>
+          <span>🎉 Live YouTube Watch Party Theater</span>
+        </div>
 
         <h1 className="font-display text-4xl sm:text-6xl font-extrabold tracking-tight text-white max-w-4xl leading-tight">
           Watch YouTube together, <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF0000] via-[#FF4D4D] to-[#FF8080]">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF0000] via-[#EC4899] to-[#9333EA] drop-shadow-[0_0_35px_rgba(255,0,0,0.4)]">
             in perfect real-time sync.
           </span>
         </h1>
 
-        <p className="mt-4 text-slate-400 text-base sm:text-lg max-w-2xl font-normal">
-          Create a virtual theater room, invite friends with a single code, and watch YouTube videos in frame-by-frame synchronization.
+        <p className="mt-4 text-slate-300 text-base sm:text-lg max-w-2xl font-normal drop-shadow">
+          Create a virtual theater party, invite friends with a single passcode, and watch YouTube videos in frame-by-frame synchronization.
         </p>
 
         {/* Action Card Box */}
