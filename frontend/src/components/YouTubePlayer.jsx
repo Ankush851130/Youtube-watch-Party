@@ -271,10 +271,17 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
     if (!player) return;
     try {
       player.playVideo();
+      try {
+        player.unMute();
+        player.setVolume(volume || 80);
+      } catch (e) {}
+
       setTimeout(() => {
         try {
           if (typeof player.getPlayerState === 'function') {
             const state = player.getPlayerState();
+            const isPlayerMuted = typeof player.isMuted === 'function' ? player.isMuted() : false;
+
             // If state is not PLAYING (1) or BUFFERING (3), browser blocked unmuted autoplay
             if (state !== 1 && state !== 3) {
               console.warn('Autoplay restricted by browser policy. Falling back to muted playback.');
@@ -282,6 +289,12 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
               setIsMuted(true);
               setNeedsUnmute(true);
               player.playVideo();
+            } else if (isPlayerMuted) {
+              setIsMuted(true);
+              setNeedsUnmute(true);
+            } else {
+              setIsMuted(false);
+              setNeedsUnmute(false);
             }
           }
         } catch (err) {}
@@ -312,9 +325,27 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
           startSeconds: 0,
           suggestedQuality: quality
         });
+
+        // Always attempt to unmute and sync volume when a new song is loaded
         setTimeout(() => {
+          if (playerRef.current) {
+            try {
+              playerRef.current.unMute();
+              playerRef.current.setVolume(volume || 80);
+              const currentlyMuted = typeof playerRef.current.isMuted === 'function' && playerRef.current.isMuted();
+              if (currentlyMuted) {
+                setIsMuted(true);
+                setNeedsUnmute(true);
+              } else {
+                setIsMuted(false);
+                setNeedsUnmute(false);
+              }
+            } catch (e) {
+              setNeedsUnmute(true);
+            }
+          }
           isSettingStateFromRemoteRef.current = false;
-        }, 800);
+        }, 500);
       }
     } catch (err) {
       console.warn('Error loading video by ID:', err);
@@ -405,10 +436,35 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
         if (isPlaying) {
           attemptPlay(playerRef.current);
         }
-        addToast("Audio unmuted and synchronized!", "success");
+        addToast("🔊 Speaker enabled & audio synchronized!", "success");
       } catch (e) { }
     }
   };
+
+  // Auto-unmute on any user interaction anywhere on the page when speaker needs unmute
+  useEffect(() => {
+    if (!needsUnmute) return;
+
+    const handleGlobalUserGesture = () => {
+      if (playerRef.current) {
+        try {
+          playerRef.current.unMute();
+          playerRef.current.setVolume(volume || 80);
+          setIsMuted(false);
+          setNeedsUnmute(false);
+          addToast("🔊 Speaker enabled & audio synchronized!", "success");
+        } catch (e) {}
+      }
+    };
+
+    window.addEventListener('click', handleGlobalUserGesture, { capture: true, once: true });
+    window.addEventListener('touchstart', handleGlobalUserGesture, { capture: true, once: true });
+
+    return () => {
+      window.removeEventListener('click', handleGlobalUserGesture, { capture: true });
+      window.removeEventListener('touchstart', handleGlobalUserGesture, { capture: true });
+    };
+  }, [needsUnmute, volume]);
 
   // Playback Control Triggers
   const handleTogglePlay = () => {
@@ -564,15 +620,36 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
         ></iframe>
       )}
 
-      {/* Autoplay Unmute Banner overlay */}
+      {/* Autoplay Speaker Enable Pop-Up Modal Overlay */}
       {needsUnmute && !embedError && (
-        <button
-          onClick={handleUserClickToUnmute}
-          className="absolute top-16 left-1/2 -translate-x-1/2 z-30 bg-[#FF0000] hover:bg-[#CC0000] text-white px-5 py-2.5 rounded-full font-bold text-xs sm:text-sm shadow-2xl border border-white/20 flex items-center gap-2 animate-bounce cursor-pointer"
-        >
-          <span className="material-symbols-outlined text-[20px]">volume_up</span>
-          <span>Click to Unmute Audio & Sync</span>
-        </button>
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-md z-40 p-4 flex flex-col items-center justify-center text-center text-white gap-4 animate-fade-in select-none">
+          <div className="relative flex items-center justify-center">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#FF0000]/20 border-2 border-[#FF0000]/60 flex items-center justify-center text-[#FF0000] shadow-[0_0_30px_rgba(255,0,0,0.5)] animate-pulse">
+              <span className="material-symbols-outlined text-[34px] sm:text-[42px]">volume_up</span>
+            </div>
+            <span className="absolute -top-1 -right-1 flex h-4 w-4">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF0000] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-4 w-4 bg-[#FF0000]"></span>
+            </span>
+          </div>
+
+          <div className="max-w-md space-y-1.5 px-2">
+            <h3 className="text-lg sm:text-2xl font-display font-extrabold text-white tracking-tight">
+              Host Changed the Song!
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              Browser security policy muted audio for the new song. Tap anywhere or click below to enable your speaker and sync playback.
+            </p>
+          </div>
+
+          <button
+            onClick={handleUserClickToUnmute}
+            className="mt-1 px-6 sm:px-8 py-3 sm:py-3.5 rounded-full bg-[#FF0000] hover:bg-[#CC0000] active:scale-95 text-white font-extrabold text-xs sm:text-base shadow-[0_0_25px_rgba(255,0,0,0.6)] border border-white/20 flex items-center gap-2.5 transition-all cursor-pointer hover:scale-105"
+          >
+            <span className="material-symbols-outlined text-[22px] sm:text-[24px]">volume_up</span>
+            <span>Enable Speaker Now</span>
+          </button>
+        </div>
       )}
 
       {/* Embed Restriction Error Overlay Card */}
