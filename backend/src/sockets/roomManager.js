@@ -25,6 +25,7 @@ class RoomManager {
       roomName: 'Friday Movie Night',
       hostId,
       currentVideoId: 'GG1_DsScm6U',
+      currentVideoTitle: 'Planet Earth III — Mountain Dynasties',
       isPlaying: true,
       currentTime: 15,
       lastUpdated: Date.now(),
@@ -69,6 +70,8 @@ class RoomManager {
       hostId,
       currentVideoId: 'GG1_DsScm6U',
       videoId: 'GG1_DsScm6U',
+      currentVideoTitle: 'Planet Earth III — Mountain Dynasties',
+      videoTitle: 'Planet Earth III — Mountain Dynasties',
       isPlaying: false,
       currentTime: 0,
       lastUpdated: now,
@@ -200,6 +203,7 @@ class RoomManager {
         roomName: room.roomName,
         hostId: room.hostId,
         videoId: room.currentVideoId,
+        videoTitle: room.currentVideoTitle || room.videoTitle || 'Planet Earth III — Mountain Dynasties',
         isPlaying: room.isPlaying,
         currentTime: computedTime,
         lastUpdated: room.lastUpdated,
@@ -258,11 +262,15 @@ class RoomManager {
     }
 
     const now = Date.now();
-    const { action, videoId, currentTime, isPlaying } = payload;
+    const { action, videoId, videoTitle, currentTime, isPlaying } = payload;
 
     if (action === 'change_video' && videoId) {
       room.currentVideoId = videoId;
       room.videoId = videoId;
+      if (videoTitle) {
+        room.currentVideoTitle = videoTitle;
+        room.videoTitle = videoTitle;
+      }
       room.currentTime = 0;
       room.isPlaying = isPlaying !== undefined ? isPlaying : true;
       room.lastUpdated = now;
@@ -273,6 +281,10 @@ class RoomManager {
       if (typeof isPlaying === 'boolean') {
         room.isPlaying = isPlaying;
       }
+      if (videoTitle) {
+        room.currentVideoTitle = videoTitle;
+        room.videoTitle = videoTitle;
+      }
       room.lastUpdated = now;
     }
 
@@ -281,6 +293,7 @@ class RoomManager {
       room,
       broadcastState: {
         videoId: room.currentVideoId || room.videoId,
+        videoTitle: room.currentVideoTitle || room.videoTitle || 'YouTube Stream',
         isPlaying: room.isPlaying,
         currentTime: room.currentTime,
         lastUpdated: room.lastUpdated,

@@ -123,7 +123,7 @@ export function setupSocketHandlers(io) {
 
     // ================= 6. CHANGE VIDEO =================
     socket.on('change_video', (payload) => {
-      const { videoId } = payload || {};
+      const { videoId, videoTitle } = payload || {};
       if (!videoId) {
         socket.emit('action_error', { message: 'Video ID is required to change video.', action: 'change_video' });
         return;
@@ -132,6 +132,7 @@ export function setupSocketHandlers(io) {
       const result = roomManager.updatePlayback(socket.id, {
         action: 'change_video',
         videoId,
+        videoTitle,
         currentTime: 0,
         isPlaying: true
       });

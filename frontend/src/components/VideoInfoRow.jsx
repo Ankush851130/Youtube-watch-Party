@@ -26,15 +26,24 @@ export default function VideoInfoRow({
     sendEmojiSocket(emoji);
   };
 
+  const currentVideoTitle = room?.videoTitle || room?.currentVideoTitle || 'Planet Earth III — Mountain Dynasties';
+  const roomName = room?.roomName || 'Watch Party';
+
   return (
     <div className="flex flex-col gap-4 pt-1">
       {/* Title & Subtitle + Sync Indicator */}
       <div className="flex flex-col md:flex-row md:items-baseline justify-between gap-3 pb-1 border-b border-white/[0.08]">
-        <div className="space-y-1.5">
-          <h1 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-            {room?.roomName || 'Planet Earth III — Mountain Dynasties'}
+        <div className="space-y-1.5 min-w-0 flex-1">
+          <div className="flex items-center gap-2 text-xs font-semibold text-[#FF8080] uppercase tracking-wider">
+            <span className="w-2 h-2 rounded-full bg-[#FF0000] animate-pulse"></span>
+            <span>Now Playing</span>
+            <span className="text-[#717171]">•</span>
+            <span className="text-slate-400 font-normal normal-case">Room: {roomName}</span>
+          </div>
+          <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-white truncate" title={currentVideoTitle}>
+            {currentVideoTitle}
           </h1>
-          <p className="text-sm text-[#AAAAAA] font-normal flex flex-wrap items-center gap-2.5">
+          <p className="text-xs sm:text-sm text-[#AAAAAA] font-normal flex flex-wrap items-center gap-2.5">
             <span className="text-slate-200 font-medium">Playing together with {participantCount} friend{participantCount > 1 ? 's' : ''}</span>
             <span className="text-[#717171]">•</span>
             <span className="text-[#FF8080] font-semibold">Ultra HD 4K</span>

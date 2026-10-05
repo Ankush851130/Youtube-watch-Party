@@ -57,7 +57,7 @@ export default function SidebarPanel({ onOpenShare, onOpenRoleModal }) {
   };
 
   const handlePlayRecommendation = (videoId, title) => {
-    changeVideoSocket(videoId);
+    changeVideoSocket(videoId, title);
     addToast(`Video changed to "${title}"`, 'success');
   };
 

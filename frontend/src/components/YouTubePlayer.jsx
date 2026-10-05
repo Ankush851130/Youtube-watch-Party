@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useSocket } from '../context/SocketContext';
 
 export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenSearch }) {
-  const { user, connectionState, playSocket, pauseSocket, seekSocket, changeVideoSocket, floatingEmojis, addToast } = useSocket();
+  const { room, user, connectionState, playSocket, pauseSocket, seekSocket, changeVideoSocket, floatingEmojis, addToast } = useSocket();
 
   const containerRef = useRef(null);
   const playerRef = useRef(null);
@@ -318,6 +318,22 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
       console.warn('Error loading video by ID:', err);
     }
   }, [videoId]);
+
+  // Sync real video title from YouTube API if missing or generic
+  useEffect(() => {
+    if (!playerRef.current || !isApiLoadedRef.current) return;
+    try {
+      const loadedData = typeof playerRef.current.getVideoData === 'function' ? playerRef.current.getVideoData() : null;
+      if (loadedData?.title && canControl) {
+        const currentTitle = room?.videoTitle || room?.currentVideoTitle;
+        if (!currentTitle || currentTitle === 'YouTube Video' || currentTitle.startsWith('YouTube Video (')) {
+          changeVideoSocket(videoId, loadedData.title);
+        }
+      }
+    } catch (err) {
+      // ignore
+    }
+  }, [videoId, playerState]);
 
   // Sync Remote Play / Pause State
   useEffect(() => {

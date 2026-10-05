@@ -72,6 +72,7 @@ export function SocketProvider({ children }) {
     newSocket.on('room_state', (data) => {
       if (data) {
         data.videoId = data.videoId || data.currentVideoId;
+        data.videoTitle = data.videoTitle || data.currentVideoTitle;
       }
       setRoom(data);
       if (data?.user) {
@@ -88,6 +89,7 @@ export function SocketProvider({ children }) {
       setRoom(prev => prev ? {
         ...prev,
         videoId: data.videoId || data.currentVideoId || prev.videoId,
+        videoTitle: data.videoTitle || data.currentVideoTitle || prev.videoTitle,
         isPlaying: data.isPlaying,
         currentTime: data.currentTime,
         lastUpdated: data.lastUpdated,
@@ -113,6 +115,7 @@ export function SocketProvider({ children }) {
       setRoom(prev => prev ? {
         ...prev,
         videoId: data.videoId || prev.videoId,
+        videoTitle: data.videoTitle || prev.videoTitle,
         isPlaying: true,
         currentTime: data.currentTime,
         lastUpdated: data.lastUpdated
@@ -123,6 +126,7 @@ export function SocketProvider({ children }) {
       setRoom(prev => prev ? {
         ...prev,
         videoId: data.videoId || prev.videoId,
+        videoTitle: data.videoTitle || prev.videoTitle,
         isPlaying: false,
         currentTime: data.currentTime,
         lastUpdated: data.lastUpdated
@@ -133,6 +137,7 @@ export function SocketProvider({ children }) {
       setRoom(prev => prev ? {
         ...prev,
         videoId: data.videoId || prev.videoId,
+        videoTitle: data.videoTitle || prev.videoTitle,
         currentTime: data.currentTime,
         isPlaying: data.isPlaying !== undefined ? data.isPlaying : prev.isPlaying,
         lastUpdated: data.lastUpdated
@@ -141,14 +146,16 @@ export function SocketProvider({ children }) {
 
     newSocket.on('change_video', (data) => {
       const newVideoId = data.videoId || data.currentVideoId;
+      const newVideoTitle = data.videoTitle || data.currentVideoTitle;
       setRoom(prev => prev ? {
         ...prev,
         videoId: newVideoId,
+        videoTitle: newVideoTitle || prev.videoTitle,
         isPlaying: true,
         currentTime: 0,
         lastUpdated: data.lastUpdated
       } : null);
-      addToast(`Video changed to synchronized stream`, 'info');
+      addToast(`Video changed to "${newVideoTitle || 'synchronized stream'}"`, 'info');
     });
 
     newSocket.on('role_assigned', (data) => {
@@ -210,8 +217,8 @@ export function SocketProvider({ children }) {
     if (socketRef.current) socketRef.current.emit('seek', { currentTime, isPlaying });
   };
 
-  const changeVideoSocket = (videoId) => {
-    if (socketRef.current) socketRef.current.emit('change_video', { videoId });
+  const changeVideoSocket = (videoId, videoTitle) => {
+    if (socketRef.current) socketRef.current.emit('change_video', { videoId, videoTitle });
   };
 
   const assignRoleSocket = (targetUserId, role) => {
