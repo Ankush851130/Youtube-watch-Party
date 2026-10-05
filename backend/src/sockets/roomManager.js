@@ -24,7 +24,7 @@ class RoomManager {
       roomCode: demoCode,
       roomName: 'Friday Movie Night',
       hostId,
-      currentVideoId: 'Lx79DuiWLu4', // Planet Earth III 4K Trailer (100% embeddable)
+      currentVideoId: 'GG1_DsScm6U',
       isPlaying: true,
       currentTime: 15,
       lastUpdated: Date.now(),
@@ -67,8 +67,8 @@ class RoomManager {
       roomCode,
       roomName: roomName || 'YouTube Watch Party',
       hostId,
-      currentVideoId: 'Lx79DuiWLu4', // Planet Earth III 4K Trailer (100% embeddable)
-      videoId: 'Lx79DuiWLu4',
+      currentVideoId: 'GG1_DsScm6U',
+      videoId: 'GG1_DsScm6U',
       isPlaying: false,
       currentTime: 0,
       lastUpdated: now,

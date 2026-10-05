@@ -94,7 +94,7 @@ export default function WatchPartyPage() {
     );
   }
 
-  const currentVideoId = room?.videoId || room?.currentVideoId || 'Lx79DuiWLu4';
+  const currentVideoId = room?.videoId || room?.currentVideoId || 'GG1_DsScm6U';
   const isPlaying = room?.isPlaying ?? true;
   const currentTime = room?.currentTime || 0;
 

@@ -3,13 +3,13 @@ import axios from 'axios';
 // Curated YouTube library for fallback search & default results (100% embeddable videos only)
 const CURATED_YOUTUBE_LIBRARY = [
   {
-    videoId: 'Lx79DuiWLu4',
-    title: 'Planet Earth III — Official 4K Trailer',
-    thumbnail: 'https://img.youtube.com/vi/Lx79DuiWLu4/hqdefault.jpg',
-    channelTitle: 'BBC Earth',
-    duration: '2:45',
-    views: '42M views',
-    category: 'Documentary'
+    videoId: 'GG1_DsScm6U',
+    title: 'Featured Watch Party Video',
+    thumbnail: 'https://img.youtube.com/vi/GG1_DsScm6U/hqdefault.jpg',
+    channelTitle: 'YouTube Stream',
+    duration: '3:45',
+    views: 'Featured',
+    category: 'Music Video'
   },
   {
     videoId: 'aqz-KE-bpKQ',

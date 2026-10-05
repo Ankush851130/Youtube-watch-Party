@@ -173,7 +173,7 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
   const initPlayer = () => {
     if (playerRef.current || !containerRef.current || !window.YT || !window.YT.Player) return;
 
-    const targetVideoId = videoId || 'Lx79DuiWLu4';
+    const targetVideoId = videoId || 'GG1_DsScm6U';
 
     try {
       playerRef.current = new window.YT.Player(containerRef.current, {
@@ -517,7 +517,7 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
   const progressPercent = duration > 0 ? Math.min(100, (localCurrentTime / duration) * 100) : 0;
   const isControlsVisible = showControls || !isPlaying || isQualityMenuOpen || isSpeedMenuOpen;
   
-  const activeVideoId = videoId || 'Lx79DuiWLu4';
+  const activeVideoId = videoId || 'GG1_DsScm6U';
 
   return (
     <div

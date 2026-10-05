@@ -34,7 +34,7 @@ export function setupSocketHandlers(io) {
         roomName: room.roomName,
         hostId: room.hostId,
         user,
-        videoId: room.videoId || room.currentVideoId || 'Lx79DuiWLu4',
+        videoId: room.videoId || room.currentVideoId || 'GG1_DsScm6U',
         isPlaying: room.isPlaying,
         currentTime: room.currentTime,
         lastUpdated: room.lastUpdated,
