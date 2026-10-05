@@ -23,28 +23,29 @@ export default function WatchPartyPage() {
   const [roleModalTarget, setRoleModalTarget] = useState(null);
   const [roleModalDefault, setRoleModalDefault] = useState('MODERATOR');
 
-  // Username prompt state if joining directly via link without pre-saved user
+  // Username & password prompt state if joining directly via link without pre-saved user
   const [usernameInput, setUsernameInput] = useState(user?.username || '');
+  const [passwordInput, setPasswordInput] = useState(user?.password || '');
   const [isPromptingUsername, setIsPromptingUsername] = useState(!user?.username);
 
   useEffect(() => {
     if (roomCode && user?.username) {
-      joinRoomSocket(roomCode, user.username, user.userId);
+      joinRoomSocket(roomCode, user.username, user.userId, user?.password || null);
     } else if (!user?.username) {
       setIsPromptingUsername(true);
     }
-  }, [roomCode, user?.username]);
+  }, [roomCode, user?.username, user?.password]);
 
   const handleJoinSubmit = (e) => {
     e.preventDefault();
     if (!usernameInput.trim()) return;
 
     const trimmed = usernameInput.trim();
-    const newUser = { username: trimmed, role: 'PARTICIPANT' };
+    const newUser = { username: trimmed, role: 'PARTICIPANT', password: passwordInput.trim() || null };
     setUser(newUser);
     setIsPromptingUsername(false);
 
-    joinRoomSocket(roomCode, trimmed);
+    joinRoomSocket(roomCode, trimmed, null, passwordInput.trim() || null);
   };
 
   const handleLeaveRoom = () => {
@@ -82,6 +83,18 @@ export default function WatchPartyPage() {
                 autoFocus
               />
             </div>
+
+            <div>
+              <label className="text-xs font-semibold text-slate-300 block mb-1.5">Room Password <span className="text-[11px] font-normal text-[#AAAAAA]">(Only if room is private)</span></label>
+              <input 
+                type="password" 
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                placeholder="Password (if private)"
+                className="w-full bg-[#181818] border border-white/10 focus:border-[#FF0000] focus:ring-1 focus:ring-[#FF0000] rounded-xl px-4 py-3 text-sm text-white placeholder:text-[#666] outline-none"
+              />
+            </div>
+
             <button 
               type="submit"
               className="w-full h-11 rounded-xl bg-[#FF0000] hover:bg-[#CC0000] text-white font-bold text-sm shadow-lg shadow-[#FF0000]/30 transition-all cursor-pointer"

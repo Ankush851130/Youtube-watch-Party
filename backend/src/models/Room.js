@@ -20,6 +20,8 @@ const roomSchema = new mongoose.Schema({
   isPlaying: { type: Boolean, default: false },
   currentTime: { type: Number, default: 0 },
   lastUpdated: { type: Date, default: Date.now },
+  isPrivate: { type: Boolean, default: false },
+  password: { type: String, default: null },
   participants: [participantSchema],
   createdAt: { type: Date, default: Date.now }
 });

@@ -33,8 +33,15 @@ export default function ShareModal({ isOpen, onClose }) {
               <span className="material-symbols-outlined text-[20px]">ios_share</span>
             </div>
             <div>
-              <h3 className="font-display text-base font-bold text-white">Share {roomName}</h3>
-              <p className="text-xs text-[#AAAAAA]">Friends can join with link or 6-digit code</p>
+              <div className="flex items-center gap-2">
+                <h3 className="font-display text-base font-bold text-white">Share {roomName}</h3>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/10 text-slate-300 border border-white/10">
+                  {room?.isPrivate ? '🔒 Private' : '🌐 Public'}
+                </span>
+              </div>
+              <p className="text-xs text-[#AAAAAA]">
+                {room?.isPrivate ? 'Share link/code + password with your friends' : 'Friends can join with link or 6-digit code'}
+              </p>
             </div>
           </div>
           <button onClick={onClose} className="text-[#AAAAAA] hover:text-white p-1 cursor-pointer">

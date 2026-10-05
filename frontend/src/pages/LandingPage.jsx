@@ -10,8 +10,13 @@ export default function LandingPage() {
   const [activeTab, setActiveTab] = useState('create'); // 'create' | 'join'
   const [createRoomName, setCreateRoomName] = useState('');
   const [createUsername, setCreateUsername] = useState('');
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [roomPassword, setRoomPassword] = useState('');
+  
   const [joinCodeInput, setJoinCodeInput] = useState('');
   const [joinUsername, setJoinUsername] = useState('');
+  const [joinPassword, setJoinPassword] = useState('');
+  
   const [activeRooms, setActiveRooms] = useState([]);
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,15 +43,26 @@ export default function LandingPage() {
       return;
     }
 
+    if (isPrivate && !roomPassword.trim()) {
+      setErrorMsg('Please set a password for your private room.');
+      return;
+    }
+
     setErrorMsg('');
     setIsSubmitting(true);
     try {
-      const res = await createRoomApi(createRoomName.trim() || 'Watch Party', createUsername.trim());
+      const res = await createRoomApi(
+        createRoomName.trim() || 'Watch Party', 
+        createUsername.trim(),
+        isPrivate,
+        roomPassword.trim()
+      );
       if (res.success && res.data) {
         setUser({
           userId: res.data.userId,
           username: createUsername.trim(),
-          role: 'HOST'
+          role: 'HOST',
+          password: roomPassword.trim()
         });
         navigate(`/room/${res.data.roomCode}`);
       }
@@ -79,7 +95,8 @@ export default function LandingPage() {
 
     setUser({
       username: joinUsername.trim(),
-      role: 'PARTICIPANT'
+      role: 'PARTICIPANT',
+      password: joinPassword.trim() || null
     });
 
     navigate(`/room/${cleanCode.toUpperCase()}`);
@@ -176,6 +193,51 @@ export default function LandingPage() {
                 />
               </div>
 
+              {/* Room Privacy Toggle */}
+              <div>
+                <label className="text-xs font-semibold text-slate-300 block mb-1.5">Room Access Type</label>
+                <div className="grid grid-cols-2 gap-2 p-1 bg-[#181818] rounded-xl border border-white/10">
+                  <button
+                    type="button"
+                    onClick={() => { setIsPrivate(false); setRoomPassword(''); }}
+                    className={`py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      !isPrivate ? 'bg-[#FF0000]/20 text-[#FF4D4D] border border-[#FF0000]/40' : 'text-[#AAAAAA] hover:text-white'
+                    }`}
+                  >
+                    <span>🌐 Public Room</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsPrivate(true)}
+                    className={`py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      isPrivate ? 'bg-[#FF0000]/20 text-[#FF4D4D] border border-[#FF0000]/40' : 'text-[#AAAAAA] hover:text-white'
+                    }`}
+                  >
+                    <span>🔒 Private (Password)</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Password Input for Private Room */}
+              {isPrivate && (
+                <div className="animate-fadeIn space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
+                    <span>Room Password</span>
+                    <span className="text-[11px] text-[#FF8080] font-mono">Protected</span>
+                  </label>
+                  <input 
+                    type="password" 
+                    value={roomPassword}
+                    onChange={(e) => setRoomPassword(e.target.value)}
+                    placeholder="Enter password for this room"
+                    className="w-full bg-[#181818] border border-white/10 focus:border-[#FF0000] focus:ring-1 focus:ring-[#FF0000] rounded-xl px-4 py-3 text-sm text-white placeholder:text-[#666] outline-none"
+                    autoFocus
+                  />
+                  <p className="text-[11px] text-[#AAAAAA]">Private rooms will not appear on the public rooms list.</p>
+                </div>
+              )}
+
               <button 
                 type="submit"
                 disabled={isSubmitting}
@@ -205,6 +267,17 @@ export default function LandingPage() {
                   value={joinUsername}
                   onChange={(e) => setJoinUsername(e.target.value)}
                   placeholder="e.g., Rahul"
+                  className="w-full bg-[#181818] border border-white/10 focus:border-[#FF0000] focus:ring-1 focus:ring-[#FF0000] rounded-xl px-4 py-3 text-sm text-white placeholder:text-[#666] outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-300 block mb-1.5">Password <span className="text-[11px] font-normal text-[#AAAAAA]">(Only if joining a private room)</span></label>
+                <input 
+                  type="password" 
+                  value={joinPassword}
+                  onChange={(e) => setJoinPassword(e.target.value)}
+                  placeholder="Room Password (optional)"
                   className="w-full bg-[#181818] border border-white/10 focus:border-[#FF0000] focus:ring-1 focus:ring-[#FF0000] rounded-xl px-4 py-3 text-sm text-white placeholder:text-[#666] outline-none"
                 />
               </div>

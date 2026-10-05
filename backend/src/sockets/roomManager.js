@@ -46,7 +46,7 @@ class RoomManager {
   }
 
   // Create a new room
-  async createRoom(roomName, hostUsername) {
+  async createRoom(roomName, hostUsername, isPrivate = false, password = null) {
     let roomCode = generateRoomCode();
     while (this.roomCodeMap.has(roomCode)) {
       roomCode = generateRoomCode();
@@ -55,6 +55,8 @@ class RoomManager {
     const roomId = generateId('room');
     const hostId = generateId('user');
     const now = Date.now();
+    const isRoomPrivate = Boolean(isPrivate);
+    const roomPassword = isRoomPrivate && password ? String(password).trim() : null;
 
     const hostParticipant = {
       userId: hostId,
@@ -78,6 +80,8 @@ class RoomManager {
       isPlaying: false,
       currentTime: 0,
       lastUpdated: now,
+      isPrivate: isRoomPrivate,
+      password: roomPassword,
       participants: new Map([[hostId, hostParticipant]])
     };
 
@@ -95,6 +99,8 @@ class RoomManager {
         isPlaying: false,
         currentTime: 0,
         lastUpdated: new Date(now),
+        isPrivate: isRoomPrivate,
+        password: roomPassword,
         participants: [{
           userId: hostId,
           username: hostParticipant.username,
@@ -112,7 +118,8 @@ class RoomManager {
       roomName: roomState.roomName,
       hostId,
       userId: hostId,
-      role: 'HOST'
+      role: 'HOST',
+      isPrivate: isRoomPrivate
     };
   }
 
@@ -157,10 +164,21 @@ class RoomManager {
   }
 
   // Join Room
-  joinRoom(roomIdOrCode, username, socketId, requestedUserId = null) {
+  joinRoom(roomIdOrCode, username, socketId, requestedUserId = null, providedPassword = null) {
     const room = this.getRoom(roomIdOrCode);
     if (!room) {
       return { error: 'Room not found. Please check your room code or link.' };
+    }
+
+    // Password verification for private room
+    if (room.isPrivate && room.password) {
+      const isReturningHost = requestedUserId && requestedUserId === room.hostId;
+      if (!isReturningHost && providedPassword !== room.password) {
+        return { 
+          error: 'Incorrect password for this private room.', 
+          requiresPassword: true 
+        };
+      }
     }
 
     let participant = null;
@@ -211,6 +229,7 @@ class RoomManager {
         isPlaying: room.isPlaying,
         currentTime: computedTime,
         lastUpdated: room.lastUpdated,
+        isPrivate: Boolean(room.isPrivate),
         participants: this.getParticipantsArray(room)
       },
       user: {
@@ -452,16 +471,19 @@ class RoomManager {
     };
   }
 
-  // Get active public rooms summary
+  // Get active public rooms summary (filter out private rooms)
   getActivePublicRooms() {
-    return Array.from(this.rooms.values()).map(r => ({
-      roomId: r.roomId,
-      roomCode: r.roomCode,
-      roomName: r.roomName,
-      participantCount: r.participants.size,
-      currentVideoId: r.currentVideoId,
-      isPlaying: r.isPlaying
-    }));
+    return Array.from(this.rooms.values())
+      .filter(r => !r.isPrivate)
+      .map(r => ({
+        roomId: r.roomId,
+        roomCode: r.roomCode,
+        roomName: r.roomName,
+        participantCount: r.participants.size,
+        currentVideoId: r.currentVideoId,
+        isPlaying: r.isPlaying,
+        isPrivate: false
+      }));
   }
 }
 

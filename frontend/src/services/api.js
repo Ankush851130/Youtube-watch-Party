@@ -10,8 +10,8 @@ const api = axios.create({
   }
 });
 
-export async function createRoomApi(roomName, username) {
-  const response = await api.post('/api/rooms', { roomName, username });
+export async function createRoomApi(roomName, username, isPrivate = false, password = '') {
+  const response = await api.post('/api/rooms', { roomName, username, isPrivate, password });
   return response.data;
 }
 

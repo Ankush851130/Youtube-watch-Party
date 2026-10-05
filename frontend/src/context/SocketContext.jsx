@@ -203,12 +203,13 @@ export function SocketProvider({ children }) {
   }, []);
 
   // Action methods
-  const joinRoomSocket = (roomCode, username, requestedUserId = null) => {
+  const joinRoomSocket = (roomCode, username, requestedUserId = null, password = null) => {
     if (!socketRef.current) return;
     socketRef.current.emit('join_room', {
       roomCode,
       username,
-      userId: requestedUserId || user?.userId
+      userId: requestedUserId || user?.userId,
+      password
     });
   };
 

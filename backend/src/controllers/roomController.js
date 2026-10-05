@@ -2,14 +2,16 @@ import { roomManager } from '../sockets/roomManager.js';
 
 export async function createRoomController(req, res) {
   try {
-    const { roomName, username } = req.body || {};
+    const { roomName, username, isPrivate, password } = req.body || {};
     if (!username || !username.trim()) {
       return res.status(400).json({ success: false, error: 'Username is required to create a watch party.' });
     }
 
     const roomData = await roomManager.createRoom(
       roomName ? roomName.trim() : 'YouTube Watch Party',
-      username.trim()
+      username.trim(),
+      isPrivate,
+      password
     );
 
     return res.status(201).json({
@@ -44,6 +46,8 @@ export async function getRoomController(req, res) {
         isPlaying: room.isPlaying,
         currentTime: computedTime,
         lastUpdated: room.lastUpdated,
+        isPrivate: Boolean(room.isPrivate),
+        requiresPassword: Boolean(room.isPrivate && room.password),
         participants: roomManager.getParticipantsArray(room)
       }
     });

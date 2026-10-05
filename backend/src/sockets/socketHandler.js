@@ -6,7 +6,7 @@ export function setupSocketHandlers(io) {
 
     // ================= 1. JOIN ROOM =================
     socket.on('join_room', (payload, callback) => {
-      const { roomId, roomCode, username, userId } = payload || {};
+      const { roomId, roomCode, username, userId, password } = payload || {};
       const targetRoomKey = roomCode || roomId;
 
       if (!targetRoomKey) {
@@ -16,11 +16,11 @@ export function setupSocketHandlers(io) {
         return;
       }
 
-      const result = roomManager.joinRoom(targetRoomKey, username, socket.id, userId);
+      const result = roomManager.joinRoom(targetRoomKey, username, socket.id, userId, password);
 
       if (result.error) {
-        if (typeof callback === 'function') callback({ error: result.error });
-        socket.emit('action_error', { message: result.error, action: 'join_room' });
+        if (typeof callback === 'function') callback({ error: result.error, requiresPassword: result.requiresPassword });
+        socket.emit('action_error', { message: result.error, requiresPassword: result.requiresPassword, action: 'join_room' });
         return;
       }
 
