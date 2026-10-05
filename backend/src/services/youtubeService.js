@@ -1,69 +1,96 @@
 import axios from 'axios';
 
-// Curated YouTube library for fallback search & default results (100% embeddable videos only)
+// Curated YouTube library with 10 sequential videos provided by user
 const CURATED_YOUTUBE_LIBRARY = [
   {
-    videoId: 'GG1_DsScm6U',
-    title: 'Featured Watch Party Video',
-    thumbnail: 'https://img.youtube.com/vi/GG1_DsScm6U/hqdefault.jpg',
-    channelTitle: 'YouTube Stream',
+    videoId: 'nno6AiEAORA',
+    title: 'Recommended Track 1',
+    thumbnail: 'https://img.youtube.com/vi/nno6AiEAORA/hqdefault.jpg',
+    channelTitle: 'YouTube Music',
     duration: '3:45',
     views: 'Featured',
-    category: 'Music Video'
+    category: 'Recommendation #1'
   },
   {
-    videoId: 'aqz-KE-bpKQ',
-    title: 'Big Buck Bunny 4K — Official Open Cinema',
-    thumbnail: 'https://img.youtube.com/vi/aqz-KE-bpKQ/hqdefault.jpg',
-    channelTitle: 'Blender Foundation',
-    duration: '10:34',
-    views: '25M views',
-    category: 'Cinema'
+    videoId: '7NCNynJCmKk',
+    title: 'Recommended Track 2',
+    thumbnail: 'https://img.youtube.com/vi/7NCNynJCmKk/hqdefault.jpg',
+    channelTitle: 'YouTube Music',
+    duration: '3:45',
+    views: 'Featured',
+    category: 'Recommendation #2'
   },
   {
-    videoId: 'gWw23EYM9VM',
-    title: 'Tears of Steel 4K — Sci-Fi Open Movie',
-    thumbnail: 'https://img.youtube.com/vi/gWw23EYM9VM/hqdefault.jpg',
-    channelTitle: 'Blender Foundation',
-    duration: '12:14',
-    views: '18M views',
-    category: 'Sci-Fi Cinema'
+    videoId: 'W8x6Dwyj0-A',
+    title: 'Recommended Track 3',
+    thumbnail: 'https://img.youtube.com/vi/W8x6Dwyj0-A/hqdefault.jpg',
+    channelTitle: 'YouTube Music',
+    duration: '3:45',
+    views: 'Featured',
+    category: 'Recommendation #3'
   },
   {
-    videoId: 'YE7VzlLtp-4',
-    title: 'Sintel 4K — Open Fantasy Movie',
-    thumbnail: 'https://img.youtube.com/vi/YE7VzlLtp-4/hqdefault.jpg',
-    channelTitle: 'Blender Foundation',
-    duration: '14:48',
-    views: '15M views',
-    category: 'Animation'
+    videoId: 'OGoetWCRVyM',
+    title: 'Recommended Track 4',
+    thumbnail: 'https://img.youtube.com/vi/OGoetWCRVyM/hqdefault.jpg',
+    channelTitle: 'YouTube Music',
+    duration: '3:45',
+    views: 'Featured',
+    category: 'Recommendation #4'
   },
   {
-    videoId: 'UDVtMYqUA4w',
-    title: 'Interstellar Main Theme — Hans Zimmer (Official Audio)',
-    thumbnail: 'https://img.youtube.com/vi/UDVtMYqUA4w/hqdefault.jpg',
-    channelTitle: 'WaterTower Music',
-    duration: '4:06',
-    views: '92M views',
-    category: 'Film Score'
+    videoId: 'uaP6KyJzbJ8',
+    title: 'Recommended Track 5',
+    thumbnail: 'https://img.youtube.com/vi/uaP6KyJzbJ8/hqdefault.jpg',
+    channelTitle: 'YouTube Music',
+    duration: '3:45',
+    views: 'Featured',
+    category: 'Recommendation #5'
   },
   {
-    videoId: '5qap5aO4i9A',
-    title: 'Lofi Beats for Studying and Relaxation 24/7',
-    thumbnail: 'https://img.youtube.com/vi/5qap5aO4i9A/hqdefault.jpg',
-    channelTitle: 'ChillHop Music',
-    duration: 'LIVE',
-    views: '45K watching',
-    category: 'Lofi'
+    videoId: 'kt9IiIWRVnU',
+    title: 'Recommended Track 6',
+    thumbnail: 'https://img.youtube.com/vi/kt9IiIWRVnU/hqdefault.jpg',
+    channelTitle: 'YouTube Music',
+    duration: '3:45',
+    views: 'Featured',
+    category: 'Recommendation #6'
   },
   {
-    videoId: 'dQw4w9WgXcQ',
-    title: 'Rick Astley - Never Gonna Give You Up (Official Music Video)',
-    thumbnail: 'https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
-    channelTitle: 'Rick Astley',
-    duration: '3:33',
-    views: '1.5B views',
-    category: 'Classic Hits'
+    videoId: 's4jdHWyj5WE',
+    title: 'Recommended Track 7',
+    thumbnail: 'https://img.youtube.com/vi/s4jdHWyj5WE/hqdefault.jpg',
+    channelTitle: 'YouTube Music',
+    duration: '3:45',
+    views: 'Featured',
+    category: 'Recommendation #7'
+  },
+  {
+    videoId: 'ujtZestMWE0',
+    title: 'Recommended Track 8',
+    thumbnail: 'https://img.youtube.com/vi/ujtZestMWE0/hqdefault.jpg',
+    channelTitle: 'YouTube Music',
+    duration: '3:45',
+    views: 'Featured',
+    category: 'Recommendation #8'
+  },
+  {
+    videoId: 'vRjaGgDsWSo',
+    title: 'Recommended Track 9',
+    thumbnail: 'https://img.youtube.com/vi/vRjaGgDsWSo/hqdefault.jpg',
+    channelTitle: 'YouTube Music',
+    duration: '3:45',
+    views: 'Featured',
+    category: 'Recommendation #9'
+  },
+  {
+    videoId: 'xjf_XuRWTcQ',
+    title: 'Recommended Track 10',
+    thumbnail: 'https://img.youtube.com/vi/xjf_XuRWTcQ/hqdefault.jpg',
+    channelTitle: 'YouTube Music',
+    duration: '3:45',
+    views: 'Featured',
+    category: 'Recommendation #10'
   }
 ];
 
@@ -90,7 +117,7 @@ export async function searchYouTube(query) {
           title: item.snippet.title,
           thumbnail: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.medium?.url || `https://img.youtube.com/vi/${item.id.videoId}/hqdefault.jpg`,
           channelTitle: item.snippet.channelTitle,
-          duration: '3:45', // Default standard length
+          duration: '3:45',
           views: 'Verified YouTube Stream',
           category: 'YouTube Search'
         }));
@@ -100,7 +127,6 @@ export async function searchYouTube(query) {
     }
   }
 
-  // Fallback search logic matching keywords or returning relevant curated videos
   const cleanQuery = (query || '').toLowerCase().trim();
   if (!cleanQuery) return CURATED_YOUTUBE_LIBRARY;
 
@@ -112,7 +138,6 @@ export async function searchYouTube(query) {
 
   if (matches.length > 0) return matches;
 
-  // If query is an extracted videoId or unfamiliar string, construct dynamic result
   return [
     {
       videoId: cleanQuery.length === 11 ? cleanQuery : 'jfKfPfyJRdk',
@@ -128,46 +153,7 @@ export async function searchYouTube(query) {
 }
 
 export async function getRecommendations(videoId) {
-  const apiKey = process.env.YOUTUBE_API_KEY;
-
-  if (apiKey && apiKey.trim() !== '') {
-    try {
-      const params = {
-        part: 'snippet',
-        type: 'video',
-        maxResults: 10,
-        videoEmbeddable: 'true',
-        key: apiKey
-      };
-
-      if (videoId && videoId.length === 11) {
-        params.relatedToVideoId = videoId;
-      } else {
-        params.q = 'trending music trailers';
-      }
-
-      const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
-        params,
-        timeout: 5000
-      });
-
-      if (response.data && response.data.items && response.data.items.length > 0) {
-        return response.data.items.map(item => ({
-          videoId: item.id.videoId,
-          title: item.snippet.title,
-          thumbnail: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.medium?.url || `https://img.youtube.com/vi/${item.id.videoId}/hqdefault.jpg`,
-          channelTitle: item.snippet.channelTitle,
-          duration: '3:45',
-          views: 'Recommended for you',
-          category: 'YouTube Up Next'
-        }));
-      }
-    } catch (err) {
-      console.warn('YouTube API recommendation fetch failed or quota limited, using fallback:', err.message);
-    }
-  }
-
-  // Fallback: Return curated list filtered to exclude current videoId
-  return CURATED_YOUTUBE_LIBRARY.filter(v => v.videoId !== videoId).concat(CURATED_YOUTUBE_LIBRARY.slice(0, 4));
+  // Always return the exact 10 sequential videos provided by the user
+  return CURATED_YOUTUBE_LIBRARY;
 }
 
