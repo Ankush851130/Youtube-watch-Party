@@ -202,6 +202,25 @@ export function SocketProvider({ children }) {
     };
   }, []);
 
+  // Periodic heartbeat & tab focus sync to keep playback frame-perfect
+  useEffect(() => {
+    if (!room?.roomCode) return;
+
+    const requestSync = () => {
+      if (socketRef.current) {
+        socketRef.current.emit('sync_state');
+      }
+    };
+
+    const interval = setInterval(requestSync, 3000);
+    window.addEventListener('focus', requestSync);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', requestSync);
+    };
+  }, [room?.roomCode]);
+
   // Action methods
   const joinRoomSocket = (roomCode, username, requestedUserId = null, password = null) => {
     if (!socketRef.current) return;

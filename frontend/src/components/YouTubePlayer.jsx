@@ -197,16 +197,14 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
             const loadedData = typeof event.target.getVideoData === 'function' ? event.target.getVideoData() : null;
             const currentLoadedId = loadedData?.video_id;
 
+            isSettingStateFromRemoteRef.current = true;
+
             if (targetVideoId && currentLoadedId && currentLoadedId !== targetVideoId) {
-              isSettingStateFromRemoteRef.current = true;
               event.target.loadVideoById({
                 videoId: targetVideoId,
                 startSeconds: currentTime || 0,
                 suggestedQuality: quality
               });
-              setTimeout(() => {
-                isSettingStateFromRemoteRef.current = false;
-              }, 800);
             } else if (currentTime > 0) {
               event.target.seekTo(currentTime, true);
             }
@@ -216,6 +214,10 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
             } else {
               event.target.pauseVideo();
             }
+
+            setTimeout(() => {
+              isSettingStateFromRemoteRef.current = false;
+            }, 1200);
 
             try {
               const currentQ = event.target.getPlaybackQuality();
@@ -342,42 +344,35 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
     return () => clearTimeout(timer);
   }, [videoId, playerState]);
 
-  // Sync Remote Play / Pause State
+  // Sync Remote Play / Pause & Live Seek Drift Correction
   useEffect(() => {
     if (!playerRef.current || !isApiLoadedRef.current) return;
 
     isSettingStateFromRemoteRef.current = true;
 
-    if (isPlaying) {
-      attemptPlay(playerRef.current);
-    } else {
-      playerRef.current.pauseVideo();
-    }
-
-    setTimeout(() => {
-      isSettingStateFromRemoteRef.current = false;
-    }, 600);
-  }, [isPlaying]);
-
-  // Sync Remote Seek State (drift correction)
-  useEffect(() => {
-    if (!playerRef.current || !isApiLoadedRef.current || currentTime === undefined) return;
-
     try {
-      const playerTime = playerRef.current.getCurrentTime() || 0;
-      const drift = Math.abs(playerTime - currentTime);
+      const playerTime = typeof playerRef.current.getCurrentTime === 'function' ? (playerRef.current.getCurrentTime() || 0) : 0;
+      const drift = Math.abs(playerTime - (currentTime || 0));
 
-      if (drift > 2.0) {
-        isSettingStateFromRemoteRef.current = true;
+      if (drift > 1.2 && currentTime >= 0) {
         playerRef.current.seekTo(currentTime, true);
-        setTimeout(() => {
-          isSettingStateFromRemoteRef.current = false;
-        }, 600);
+      }
+
+      if (isPlaying) {
+        attemptPlay(playerRef.current);
+      } else {
+        playerRef.current.pauseVideo();
       }
     } catch (err) {
-      console.warn('Error syncing player seek:', err);
+      console.warn('Error in sync play/pause effect:', err);
     }
-  }, [currentTime]);
+
+    const timer = setTimeout(() => {
+      isSettingStateFromRemoteRef.current = false;
+    }, 700);
+
+    return () => clearTimeout(timer);
+  }, [isPlaying, currentTime]);
 
   // Track progress bar time locally
   useEffect(() => {
@@ -404,8 +399,11 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
         playerRef.current.setVolume(volume || 80);
         setIsMuted(false);
         setNeedsUnmute(false);
+        if (typeof currentTime === 'number' && currentTime > 0) {
+          playerRef.current.seekTo(currentTime, true);
+        }
         if (isPlaying) {
-          playerRef.current.playVideo();
+          attemptPlay(playerRef.current);
         }
         addToast("Audio unmuted and synchronized!", "success");
       } catch (e) { }
