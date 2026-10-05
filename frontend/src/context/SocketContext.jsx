@@ -80,6 +80,9 @@ export function SocketProvider({ children }) {
         setUser(data.user);
         try {
           localStorage.setItem('watchtogether_user', JSON.stringify(data.user));
+          if (data.user.role === 'HOST' && data.roomCode) {
+            localStorage.setItem(`watchparty_host_${data.roomCode.toUpperCase()}`, data.user.userId);
+          }
         } catch (e) {
           console.warn('Storage save failed:', e);
         }
@@ -257,10 +260,20 @@ export function SocketProvider({ children }) {
   // Action methods
   const joinRoomSocket = (roomCode, username, requestedUserId = null, password = null) => {
     if (!socketRef.current) return;
+    const cleanCode = (roomCode || '').trim().toUpperCase();
+
+    let targetUserId = requestedUserId || user?.userId;
+    if (!targetUserId && cleanCode) {
+      try {
+        targetUserId = localStorage.getItem(`watchparty_host_${cleanCode}`);
+      } catch (e) {}
+    }
+
     socketRef.current.emit('join_room', {
-      roomCode,
+      roomCode: cleanCode,
       username,
-      userId: requestedUserId || user?.userId,
+      userId: targetUserId,
+      requestedUserId: targetUserId,
       password
     });
   };

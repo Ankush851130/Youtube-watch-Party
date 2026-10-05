@@ -60,6 +60,12 @@ export default function LandingPage() {
         roomPassword.trim()
       );
       if (res.success && res.data) {
+        try {
+          if (res.data.roomCode && res.data.userId) {
+            localStorage.setItem(`watchparty_host_${res.data.roomCode.toUpperCase()}`, res.data.userId);
+          }
+        } catch (e) {}
+
         setUser({
           userId: res.data.userId,
           username: createUsername.trim(),

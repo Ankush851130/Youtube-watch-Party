@@ -175,11 +175,28 @@ class RoomManager {
     let participant = null;
     let isNewUser = false;
 
-    // Check if user is returning with existing userId
-    if (requestedUserId && room.participants.has(requestedUserId)) {
-      participant = room.participants.get(requestedUserId);
-      participant.socketId = socketId;
-      participant.username = username || participant.username;
+    // Check if user is returning with existing userId or is returning Host
+    if (requestedUserId && (requestedUserId === room.hostId || room.participants.has(requestedUserId))) {
+      if (room.participants.has(requestedUserId)) {
+        participant = room.participants.get(requestedUserId);
+        participant.socketId = socketId;
+        participant.username = username || participant.username;
+      } else {
+        // Returning Host whose participant entry was cleared during leaveRoom
+        participant = {
+          userId: requestedUserId,
+          username: username || 'Host User',
+          role: 'HOST',
+          socketId,
+          joinedAt: new Date()
+        };
+        room.participants.set(requestedUserId, participant);
+      }
+
+      if (requestedUserId === room.hostId) {
+        participant.role = 'HOST';
+        room.hostId = requestedUserId;
+      }
     } else {
       // Create new participant
       const isFirstUser = room.participants.size === 0;
