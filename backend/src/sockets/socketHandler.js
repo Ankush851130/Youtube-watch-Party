@@ -50,6 +50,8 @@ export function setupSocketHandlers(io) {
       const { room, user } = result;
       socket.join(room.roomId);
 
+      const participantArray = roomManager.getParticipantsArray(room);
+
       // Send confirmation to client
       const joinResponse = {
         roomId: room.roomId,
@@ -61,7 +63,7 @@ export function setupSocketHandlers(io) {
         isPlaying: room.isPlaying,
         currentTime: room.currentTime,
         lastUpdated: room.lastUpdated,
-        participants: room.participants
+        participants: participantArray
       };
 
       if (typeof callback === 'function') callback({ success: true, data: joinResponse });
@@ -72,7 +74,7 @@ export function setupSocketHandlers(io) {
         userId: user.userId,
         username: user.username,
         role: user.role,
-        participants: room.participants,
+        participants: participantArray,
         message: `${user.username} joined the party`
       });
 

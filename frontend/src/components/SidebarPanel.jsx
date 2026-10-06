@@ -14,7 +14,10 @@ export default function SidebarPanel({ onOpenShare, onOpenRoleModal }) {
 
   const chatScrollRef = useRef(null);
 
-  const participants = room?.participants || [];
+  const rawParticipants = room?.participants || [];
+  const participants = Array.from(
+    new Map((Array.isArray(rawParticipants) ? rawParticipants : []).map(p => [p.userId || p.username, p])).values()
+  );
   const currentUserId = user?.userId;
   const isHost = user?.role === 'HOST';
   const currentVideoId = room?.videoId || room?.currentVideoId || 'jfKfPfyJRdk';

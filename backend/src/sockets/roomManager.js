@@ -175,28 +175,39 @@ class RoomManager {
     let participant = null;
     let isNewUser = false;
 
-    // Check if user is returning with existing userId or is returning Host
-    if (requestedUserId && (requestedUserId === room.hostId || room.participants.has(requestedUserId))) {
-      if (room.participants.has(requestedUserId)) {
-        participant = room.participants.get(requestedUserId);
-        participant.socketId = socketId;
-        participant.username = username || participant.username;
-      } else {
-        // Returning Host whose participant entry was cleared during leaveRoom
-        participant = {
-          userId: requestedUserId,
-          username: username || 'Host User',
-          role: 'HOST',
-          socketId,
-          joinedAt: new Date()
-        };
-        room.participants.set(requestedUserId, participant);
-      }
+    // Check if user is returning with existing userId, hostId, or matching username
+    let existingKey = null;
 
-      if (requestedUserId === room.hostId) {
-        participant.role = 'HOST';
-        room.hostId = requestedUserId;
+    if (requestedUserId && (requestedUserId === room.hostId || room.participants.has(requestedUserId))) {
+      existingKey = requestedUserId;
+    } else if (username && username.trim()) {
+      const cleanName = username.trim().toLowerCase();
+      for (const [pId, p] of room.participants.entries()) {
+        if (p.username && p.username.trim().toLowerCase() === cleanName) {
+          existingKey = pId;
+          break;
+        }
       }
+    }
+
+    if (existingKey && room.participants.has(existingKey)) {
+      participant = room.participants.get(existingKey);
+      participant.socketId = socketId;
+      participant.username = username || participant.username;
+
+      if (existingKey === room.hostId || requestedUserId === room.hostId) {
+        participant.role = 'HOST';
+        room.hostId = existingKey;
+      }
+    } else if (requestedUserId && requestedUserId === room.hostId) {
+      participant = {
+        userId: requestedUserId,
+        username: username || 'Host User',
+        role: 'HOST',
+        socketId,
+        joinedAt: new Date()
+      };
+      room.participants.set(requestedUserId, participant);
     } else {
       // Create new participant
       const isFirstUser = room.participants.size === 0;
