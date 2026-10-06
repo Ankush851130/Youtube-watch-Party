@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSocket } from '../context/SocketContext';
+import { useAuth } from '../context/AuthContext';
 import { searchYouTubeApi } from '../services/api';
 import { extractYouTubeId } from '../utils/youtubeUtils';
 
-export default function Navbar({ onOpenSearch, onOpenShare, onLeaveRoom }) {
+export default function Navbar({ onOpenSearch, onOpenShare, onLeaveRoom, onOpenAuth }) {
   const { room, user, changeVideoSocket, addToast } = useSocket();
+  const { user: authUser, logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Live Inline Search State
@@ -154,11 +156,15 @@ export default function Navbar({ onOpenSearch, onOpenShare, onLeaveRoom }) {
 
           {/* User Profile Pill */}
           <div className="flex items-center gap-2 pl-1">
-            <div className="w-8 h-8 rounded-full bg-[#FF0000] flex items-center justify-center text-white text-xs font-bold ring-2 ring-[#FF0000]/30 shadow-sm shadow-[#FF0000]/30 uppercase">
-              {username.charAt(0)}
-            </div>
+            {authUser?.avatar ? (
+              <img src={authUser.avatar} alt={authUser.username} className="w-8 h-8 rounded-full ring-2 ring-[#FF0000]/40 object-cover" />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-[#FF0000] flex items-center justify-center text-white text-xs font-bold ring-2 ring-[#FF0000]/30 shadow-sm shadow-[#FF0000]/30 uppercase">
+                {(authUser?.username || username).charAt(0)}
+              </div>
+            )}
             <div className="flex-col text-left hidden lg:flex">
-              <span className="text-xs font-semibold text-slate-200 leading-tight">{username}</span>
+              <span className="text-xs font-semibold text-slate-200 leading-tight">{authUser?.username || username}</span>
               <span className="text-[10px] text-[#FF4D4D] font-bold uppercase tracking-wider">
                 {userRole === 'HOST' ? '👑 Host' : userRole === 'MODERATOR' ? '🛡️ Mod' : '👤 Viewer'}
               </span>
@@ -176,7 +182,21 @@ export default function Navbar({ onOpenSearch, onOpenShare, onLeaveRoom }) {
             </button>
 
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 rounded-xl bg-[#181818] border border-white/10 shadow-2xl p-1.5 z-50 text-xs">
+              <div className="absolute right-0 mt-2 w-52 rounded-xl bg-[#181818] border border-white/10 shadow-2xl p-1.5 z-50 text-xs">
+                {authUser ? (
+                  <div className="px-3 py-2 border-b border-white/10 mb-1">
+                    <p className="font-semibold text-white truncate">{authUser.username}</p>
+                    <p className="text-[11px] text-slate-400 truncate">{authUser.email}</p>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => { setIsDropdownOpen(false); if (onOpenAuth) onOpenAuth('login'); }}
+                    className="w-full flex items-center gap-2 px-2.5 py-2 text-[#FF8080] hover:bg-white/[0.06] rounded-lg text-left cursor-pointer font-semibold"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">account_circle</span>
+                    <span>Sign In / Register</span>
+                  </button>
+                )}
                 <button 
                   onClick={() => { setIsDropdownOpen(false); onOpenShare(); }}
                   className="w-full flex items-center gap-2 px-2.5 py-2 text-slate-300 hover:text-white hover:bg-white/[0.06] rounded-lg text-left cursor-pointer"
@@ -185,6 +205,15 @@ export default function Navbar({ onOpenSearch, onOpenShare, onLeaveRoom }) {
                   <span>Invite Friends</span>
                 </button>
                 <div className="h-px bg-white/10 my-1"></div>
+                {authUser && (
+                  <button 
+                    onClick={() => { setIsDropdownOpen(false); logout(); addToast('Logged out successfully', 'info'); }}
+                    className="w-full flex items-center gap-2 px-2.5 py-2 text-amber-400 hover:bg-white/[0.06] rounded-lg text-left cursor-pointer mb-1"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">lock_reset</span>
+                    <span>Sign Out Account</span>
+                  </button>
+                )}
                 <button 
                   onClick={() => { setIsDropdownOpen(false); onLeaveRoom(); }}
                   className="w-full flex items-center gap-2 px-2.5 py-2 text-red-400 hover:bg-[#DC2626]/10 rounded-lg text-left cursor-pointer"

@@ -10,6 +10,32 @@ const api = axios.create({
   }
 });
 
+// Interceptor to attach JWT token if available
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('watchtogether_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => Promise.reject(error));
+
+// Auth APIs
+export async function registerApi(username, email, password) {
+  const response = await api.post('/api/auth/register', { username, email, password });
+  return response.data;
+}
+
+export async function loginApi(email, password) {
+  const response = await api.post('/api/auth/login', { email, password });
+  return response.data;
+}
+
+export async function getMeApi() {
+  const response = await api.get('/api/auth/me');
+  return response.data;
+}
+
+// Room APIs
 export async function createRoomApi(roomName, username, isPrivate = false, password = '') {
   const response = await api.post('/api/rooms', { roomName, username, isPrivate, password });
   return response.data;
@@ -38,4 +64,3 @@ export async function getRecommendationsApi(videoId) {
   });
   return response.data;
 }
-

@@ -2,10 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createRoomApi, listRoomsApi } from '../services/api';
 import { useSocket } from '../context/SocketContext';
+import { useAuth } from '../context/AuthContext';
+import AuthModal from '../components/AuthModal';
 
 export default function LandingPage() {
   const navigate = useNavigate();
   const { setUser } = useSocket();
+  const { user: authUser, logout } = useAuth();
+
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState('login');
 
   const [activeTab, setActiveTab] = useState('create'); // 'create' | 'join'
   const [createRoomName, setCreateRoomName] = useState('');
@@ -26,6 +32,13 @@ export default function LandingPage() {
   useEffect(() => {
     fetchRooms();
   }, []);
+
+  useEffect(() => {
+    if (authUser?.username) {
+      setCreateUsername(authUser.username);
+      setJoinUsername(authUser.username);
+    }
+  }, [authUser]);
 
   const fetchRooms = async () => {
     try {
@@ -158,7 +171,7 @@ export default function LandingPage() {
             {/* Party Ambient Lights Toggle Button */}
             <button
               onClick={() => setPartyLightsOn(!partyLightsOn)}
-              className={`text-xs font-semibold px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`text-xs font-semibold px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer hidden sm:flex ${
                 partyLightsOn 
                   ? 'bg-gradient-to-r from-[#FF0000]/20 via-[#9333EA]/20 to-[#06B6D4]/20 border-[#FF0000]/40 text-white shadow-md shadow-[#FF0000]/20' 
                   : 'bg-white/[0.04] border-white/10 text-slate-400 hover:text-white'
@@ -171,10 +184,44 @@ export default function LandingPage() {
 
             <a 
               href="#active-rooms"
-              className="text-xs font-medium text-slate-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/[0.06] transition-colors"
+              className="text-xs font-medium text-slate-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/[0.06] transition-colors hidden md:inline"
             >
               Public Rooms ({activeRooms.length})
             </a>
+
+            {authUser ? (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl">
+                {authUser.avatar ? (
+                  <img src={authUser.avatar} alt={authUser.username} className="w-6 h-6 rounded-full object-cover" />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-[#FF0000] text-white flex items-center justify-center font-bold text-xs">
+                    {authUser.username.charAt(0)}
+                  </div>
+                )}
+                <span className="text-xs font-semibold text-white">{authUser.username}</span>
+                <button
+                  onClick={logout}
+                  className="text-[11px] text-red-400 hover:text-red-300 ml-1 font-medium cursor-pointer"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => { setAuthModalTab('login'); setIsAuthModalOpen(true); }}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-xl text-slate-200 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => { setAuthModalTab('register'); setIsAuthModalOpen(true); }}
+                  className="text-xs font-semibold px-3.5 py-1.5 rounded-xl bg-[#FF0000] hover:bg-[#CC0000] text-white shadow-md shadow-[#FF0000]/20 transition-all cursor-pointer"
+                >
+                  Create Account
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -495,6 +542,13 @@ export default function LandingPage() {
       <footer className="w-full border-t border-white/[0.08] py-6 text-center text-xs text-[#717171]">
         WatchTogether — YouTube Watch Party System • Full Stack Real-Time Application
       </footer>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        initialTab={authModalTab}
+      />
     </div>
   );
 }

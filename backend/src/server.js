@@ -5,6 +5,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 
+import authRoutes from './routes/authRoutes.js';
 import roomRoutes from './routes/roomRoutes.js';
 import youtubeRoutes from './routes/youtubeRoutes.js';
 import { setupSocketHandlers } from './sockets/socketHandler.js';
@@ -62,6 +63,7 @@ const io = new Server(httpServer, {
 setupSocketHandlers(io);
 
 // REST API Endpoints
+app.use('/api/auth', authRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/youtube', youtubeRoutes);
 

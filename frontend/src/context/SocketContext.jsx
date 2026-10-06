@@ -38,11 +38,13 @@ export function SocketProvider({ children }) {
     const rawSocketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5001' : window.location.origin);
     const SOCKET_URL = rawSocketUrl ? rawSocketUrl.replace(/\/$/, '') : window.location.origin;
 
+    const token = localStorage.getItem('watchtogether_token');
     const newSocket = io(SOCKET_URL, {
       transports: ['websocket', 'polling'],
       autoConnect: true,
       reconnectionAttempts: 10,
-      reconnectionDelay: 1000
+      reconnectionDelay: 1000,
+      auth: { token }
     });
 
     socketRef.current = newSocket;
@@ -261,6 +263,7 @@ export function SocketProvider({ children }) {
   const joinRoomSocket = (roomCode, username, requestedUserId = null, password = null) => {
     if (!socketRef.current) return;
     const cleanCode = (roomCode || '').trim().toUpperCase();
+    const token = localStorage.getItem('watchtogether_token');
 
     let targetUserId = requestedUserId || user?.userId;
     if (!targetUserId && cleanCode) {
@@ -274,7 +277,8 @@ export function SocketProvider({ children }) {
       username,
       userId: targetUserId,
       requestedUserId: targetUserId,
-      password
+      password,
+      token
     });
   };
 

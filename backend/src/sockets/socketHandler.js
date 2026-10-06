@@ -1,13 +1,36 @@
+import jwt from 'jsonwebtoken';
 import { roomManager } from './roomManager.js';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'watchtogether_jwt_secret_key_2026_super_safe';
 
 export function setupSocketHandlers(io) {
   io.on('connection', (socket) => {
     console.log(`🔌 Socket connected: ${socket.id}`);
 
+    // Extract auth token from handshake if provided
+    const socketToken = socket.handshake.auth?.token;
+
     // ================= 1. JOIN ROOM =================
     socket.on('join_room', (payload, callback) => {
-      const { roomId, roomCode, username, userId, password } = payload || {};
+      const { roomId, roomCode, username, userId: rawUserId, password, token } = payload || {};
       const targetRoomKey = roomCode || roomId;
+
+      let authUserId = rawUserId;
+      let authUsername = username;
+
+      // Extract & verify token if passed via payload or handshake
+      const activeToken = token || socketToken;
+      if (activeToken) {
+        try {
+          const decoded = jwt.verify(activeToken, JWT_SECRET);
+          if (decoded && decoded.userId) {
+            authUserId = decoded.userId;
+            authUsername = decoded.username || username;
+          }
+        } catch (e) {
+          console.warn('Socket JWT verification failed:', e.message);
+        }
+      }
 
       if (!targetRoomKey) {
         const errPayload = { message: 'Room Code or Room ID is required.' };
@@ -16,7 +39,7 @@ export function setupSocketHandlers(io) {
         return;
       }
 
-      const result = roomManager.joinRoom(targetRoomKey, username, socket.id, userId, password);
+      const result = roomManager.joinRoom(targetRoomKey, authUsername, socket.id, authUserId, password);
 
       if (result.error) {
         if (typeof callback === 'function') callback({ error: result.error, requiresPassword: result.requiresPassword });

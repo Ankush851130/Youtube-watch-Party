@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
+import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import YouTubePlayer from '../components/YouTubePlayer';
 import VideoInfoRow from '../components/VideoInfoRow';
@@ -9,32 +10,39 @@ import SearchModal from '../components/SearchModal';
 import PasteUrlModal from '../components/PasteUrlModal';
 import ShareModal from '../components/ShareModal';
 import RoleModal from '../components/RoleModal';
+import AuthModal from '../components/AuthModal';
 import ToastContainer from '../components/ToastContainer';
 
 export default function WatchPartyPage() {
   const { roomCode } = useParams();
   const navigate = useNavigate();
   const { room, user, setUser, joinRoomSocket, leaveRoomSocket } = useSocket();
+  const { user: authUser } = useAuth();
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isPasteUrlOpen, setIsPasteUrlOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [roleModalTarget, setRoleModalTarget] = useState(null);
   const [roleModalDefault, setRoleModalDefault] = useState('MODERATOR');
 
   // Username & password prompt state if joining directly via link without pre-saved user
-  const [usernameInput, setUsernameInput] = useState(user?.username || '');
+  const [usernameInput, setUsernameInput] = useState(authUser?.username || user?.username || '');
   const [passwordInput, setPasswordInput] = useState(user?.password || '');
-  const [isPromptingUsername, setIsPromptingUsername] = useState(!user?.username);
+  const [isPromptingUsername, setIsPromptingUsername] = useState(!user?.username && !authUser?.username);
 
   useEffect(() => {
-    if (roomCode && user?.username) {
-      joinRoomSocket(roomCode, user.username, user.userId, user?.password || null);
-    } else if (!user?.username) {
+    const activeUsername = authUser?.username || user?.username;
+    const activeUserId = authUser?.userId || user?.userId;
+
+    if (roomCode && activeUsername) {
+      joinRoomSocket(roomCode, activeUsername, activeUserId, user?.password || null);
+      setIsPromptingUsername(false);
+    } else if (!activeUsername) {
       setIsPromptingUsername(true);
     }
-  }, [roomCode, user?.username, user?.password]);
+  }, [roomCode, authUser?.username, user?.username, user?.password]);
 
   const handleJoinSubmit = (e) => {
     e.preventDefault();
@@ -102,7 +110,22 @@ export default function WatchPartyPage() {
               Enter Room
             </button>
           </form>
+
+          <div className="pt-2 text-center border-t border-white/10">
+            <button
+              type="button"
+              onClick={() => setIsAuthModalOpen(true)}
+              className="text-xs text-[#FF8080] hover:underline font-semibold cursor-pointer"
+            >
+              🔐 Have an account? Sign In / Register first
+            </button>
+          </div>
         </div>
+
+        <AuthModal 
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+        />
       </div>
     );
   }
@@ -118,6 +141,7 @@ export default function WatchPartyPage() {
         onOpenSearch={() => setIsSearchOpen(true)}
         onOpenShare={() => setIsShareOpen(true)}
         onLeaveRoom={handleLeaveRoom}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
       />
 
       {/* Main Digital Theater Stage */}
@@ -170,6 +194,11 @@ export default function WatchPartyPage() {
         onClose={() => setIsRoleModalOpen(false)} 
         targetUser={roleModalTarget}
         defaultRole={roleModalDefault}
+      />
+
+      <AuthModal 
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
       />
 
       <ToastContainer />
