@@ -36,8 +36,8 @@ export async function getMeApi() {
 }
 
 // Room APIs
-export async function createRoomApi(roomName, username, isPrivate = false, password = '') {
-  const response = await api.post('/api/rooms', { roomName, username, isPrivate, password });
+export async function createRoomApi(roomName, username, isPrivate = false, password = '', hostUserId = null) {
+  const response = await api.post('/api/rooms', { roomName, username, isPrivate, password, hostUserId });
   return response.data;
 }
 

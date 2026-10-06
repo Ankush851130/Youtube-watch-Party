@@ -1,17 +1,34 @@
+import jwt from 'jsonwebtoken';
 import { roomManager } from '../sockets/roomManager.js';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'watchtogether_jwt_secret_key_2026_super_safe';
 
 export async function createRoomController(req, res) {
   try {
-    const { roomName, username, isPrivate, password } = req.body || {};
+    const { roomName, username, isPrivate, password, hostUserId: bodyHostUserId } = req.body || {};
     if (!username || !username.trim()) {
       return res.status(400).json({ success: false, error: 'Username is required to create a watch party.' });
+    }
+
+    let activeHostUserId = bodyHostUserId || null;
+    if (!activeHostUserId && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      try {
+        const token = req.headers.authorization.split(' ')[1];
+        const decoded = jwt.verify(token, JWT_SECRET);
+        if (decoded && decoded.userId) {
+          activeHostUserId = decoded.userId;
+        }
+      } catch (e) {
+        // Fallback to null if token verification fails
+      }
     }
 
     const roomData = await roomManager.createRoom(
       roomName ? roomName.trim() : 'YouTube Watch Party',
       username.trim(),
       isPrivate,
-      password
+      password,
+      activeHostUserId
     );
 
     return res.status(201).json({

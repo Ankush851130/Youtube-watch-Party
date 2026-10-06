@@ -28,14 +28,14 @@ class RoomManager {
   }
 
   // Create a new room
-  async createRoom(roomName, hostUsername, isPrivate = false, password = null) {
+  async createRoom(roomName, hostUsername, isPrivate = false, password = null, customHostId = null) {
     let roomCode = generateRoomCode();
     while (this.roomCodeMap.has(roomCode)) {
       roomCode = generateRoomCode();
     }
 
     const roomId = generateId('room');
-    const hostId = generateId('user');
+    const hostId = customHostId || generateId('user');
     const now = Date.now();
     const isRoomPrivate = Boolean(isPrivate);
     const roomPassword = isRoomPrivate && password ? String(password).trim() : null;

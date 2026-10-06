@@ -66,21 +66,24 @@ export default function LandingPage() {
     setErrorMsg('');
     setIsSubmitting(true);
     try {
+      const activeHostUserId = authUser?.userId || null;
       const res = await createRoomApi(
         createRoomName.trim() || 'Watch Party', 
         createUsername.trim(),
         isPrivate,
-        roomPassword.trim()
+        roomPassword.trim(),
+        activeHostUserId
       );
       if (res.success && res.data) {
+        const actualHostId = res.data.hostId || res.data.userId;
         try {
-          if (res.data.roomCode && res.data.userId) {
-            localStorage.setItem(`watchparty_host_${res.data.roomCode.toUpperCase()}`, res.data.userId);
+          if (res.data.roomCode && actualHostId) {
+            localStorage.setItem(`watchparty_host_${res.data.roomCode.toUpperCase()}`, actualHostId);
           }
         } catch (e) {}
 
         setUser({
-          userId: res.data.userId,
+          userId: actualHostId,
           username: createUsername.trim(),
           role: 'HOST',
           password: roomPassword.trim()

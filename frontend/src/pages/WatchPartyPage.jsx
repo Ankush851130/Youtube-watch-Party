@@ -34,7 +34,14 @@ export default function WatchPartyPage() {
 
   useEffect(() => {
     const activeUsername = authUser?.username || user?.username;
-    const activeUserId = authUser?.userId || user?.userId;
+    let activeUserId = authUser?.userId || user?.userId;
+
+    if (!activeUserId && roomCode) {
+      try {
+        const storedHostId = localStorage.getItem(`watchparty_host_${roomCode.toUpperCase()}`);
+        if (storedHostId) activeUserId = storedHostId;
+      } catch (e) {}
+    }
 
     if (roomCode && activeUsername) {
       joinRoomSocket(roomCode, activeUsername, activeUserId, user?.password || null);
