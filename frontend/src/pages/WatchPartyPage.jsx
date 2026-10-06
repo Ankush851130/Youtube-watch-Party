@@ -16,7 +16,7 @@ import ToastContainer from '../components/ToastContainer';
 export default function WatchPartyPage() {
   const { roomCode } = useParams();
   const navigate = useNavigate();
-  const { room, user, setUser, joinRoomSocket, leaveRoomSocket } = useSocket();
+  const { socket, room, user, setUser, joinRoomSocket, leaveRoomSocket } = useSocket();
   const { user: authUser } = useAuth();
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -31,6 +31,21 @@ export default function WatchPartyPage() {
   const [usernameInput, setUsernameInput] = useState(authUser?.username || user?.username || '');
   const [passwordInput, setPasswordInput] = useState(user?.password || '');
   const [isPromptingUsername, setIsPromptingUsername] = useState(!user?.username && !authUser?.username);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleParticipantRemovedSelf = () => {
+      leaveRoomSocket();
+      navigate('/');
+    };
+
+    socket.on('participant_removed_self', handleParticipantRemovedSelf);
+
+    return () => {
+      socket.off('participant_removed_self', handleParticipantRemovedSelf);
+    };
+  }, [socket, leaveRoomSocket, navigate]);
 
   useEffect(() => {
     const activeUsername = authUser?.username || user?.username;
