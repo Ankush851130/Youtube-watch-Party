@@ -192,7 +192,15 @@ class RoomManager {
 
     if (existingKey && room.participants.has(existingKey)) {
       participant = room.participants.get(existingKey);
+      
+      // Cancel any disconnect grace period timer if running
+      if (participant.disconnectTimer) {
+        clearTimeout(participant.disconnectTimer);
+        participant.disconnectTimer = null;
+      }
+
       participant.socketId = socketId;
+      participant.disconnectedAt = null;
       participant.username = username || participant.username;
 
       if (existingKey === room.hostId || requestedUserId === room.hostId) {
@@ -491,7 +499,7 @@ class RoomManager {
   }
 
   // Handle Leave Room / Disconnect
-  leaveRoom(socketId) {
+  leaveRoom(socketId, isExplicit = false) {
     const info = this.socketMap.get(socketId);
     if (!info) return null;
 
@@ -504,12 +512,43 @@ class RoomManager {
     const participant = room.participants.get(userId);
     if (!participant) return null;
 
-    // Delete participant from room participants map
+    // 1. Ghost Socket Check: If the participant is already associated with another active socketId,
+    // this disconnecting socket is an old stale/ghost socket. Do NOT remove the participant!
+    if (participant.socketId && participant.socketId !== socketId) {
+      console.log(`♻️ Ignoring stale ghost socket disconnect ${socketId} for user ${participant.username} (active on ${participant.socketId})`);
+      return null;
+    }
+
+    // 2. If it is NOT an explicit user departure (i.e. unexpected network/timeout disconnect):
+    // Do NOT delete the participant immediately! Give a 45-second grace period for auto-reconnection.
+    if (!isExplicit) {
+      participant.socketId = null;
+      participant.disconnectedAt = Date.now();
+
+      // Clear any prior timer just in case
+      if (participant.disconnectTimer) {
+        clearTimeout(participant.disconnectTimer);
+      }
+
+      console.log(`⏳ Grace period started (45s) for disconnected user: ${participant.username} in room ${room.roomCode}`);
+
+      return {
+        inGracePeriod: true,
+        room,
+        participant
+      };
+    }
+
+    // 3. Explicit departure: Delete participant immediately
+    if (participant.disconnectTimer) {
+      clearTimeout(participant.disconnectTimer);
+      participant.disconnectTimer = null;
+    }
+
     room.participants.delete(userId);
 
     // Check host migration if host leaves permanently
     if (userId === room.hostId) {
-      // Find another active or moderator participant to promote as Host
       const remaining = Array.from(room.participants.values());
       if (remaining.length > 0) {
         const nextHost = remaining.find(p => p.role === 'MODERATOR') || remaining[0];
@@ -533,6 +572,46 @@ class RoomManager {
       leftUsername: participant.username,
       participants: this.getParticipantsArray(room)
     };
+  }
+
+  // Finalize participant removal after grace period expires
+  finalizeDisconnect(roomId, userId, io) {
+    const room = this.rooms.get(roomId);
+    if (!room) return;
+
+    const participant = room.participants.get(userId);
+    // If user reconnected during the grace period (participant.socketId is not null), abort removal
+    if (!participant || participant.socketId) return;
+
+    console.log(`🚪 Grace period expired. Removing ${participant.username} from room ${room.roomCode}`);
+    room.participants.delete(userId);
+
+    if (userId === room.hostId) {
+      const remaining = Array.from(room.participants.values());
+      if (remaining.length > 0) {
+        const nextHost = remaining.find(p => p.role === 'MODERATOR') || remaining[0];
+        nextHost.role = 'HOST';
+        room.hostId = nextHost.userId;
+      }
+    }
+
+    if (room.participants.size === 0) {
+      if (room.emptyTimer) clearTimeout(room.emptyTimer);
+      room.emptySince = Date.now();
+      room.emptyTimer = setTimeout(() => {
+        this.deleteRoom(room.roomId);
+      }, 120000);
+    }
+
+    if (io) {
+      io.to(room.roomId).emit('user_left', {
+        userId,
+        username: participant.username,
+        hostId: room.hostId,
+        participants: this.getParticipantsArray(room),
+        message: `${participant.username} left the room`
+      });
+    }
   }
 
   // Get active public rooms summary (filter out private rooms & empty rooms)

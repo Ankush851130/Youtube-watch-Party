@@ -20,6 +20,7 @@ export function SocketProvider({ children }) {
   const [floatingEmojis, setFloatingEmojis] = useState([]);
 
   const socketRef = useRef(null);
+  const activeRoomParamsRef = useRef(null);
 
   // Toast Helper
   const addToast = (message, type = 'info') => {
@@ -42,17 +43,30 @@ export function SocketProvider({ children }) {
     const newSocket = io(SOCKET_URL, {
       transports: ['websocket', 'polling'],
       autoConnect: true,
-      reconnectionAttempts: 10,
+      reconnectionAttempts: 15,
       reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
       auth: { token }
     });
 
     socketRef.current = newSocket;
     setSocket(newSocket);
 
-    newSocket.on('connect', () => {
+    const attemptRejoin = () => {
       setConnectionState('Connected');
+      if (activeRoomParamsRef.current && activeRoomParamsRef.current.roomCode) {
+        console.log('🔄 Auto-rejoining room on socket connect:', activeRoomParamsRef.current.roomCode);
+        const currentToken = localStorage.getItem('watchtogether_token');
+        newSocket.emit('join_room', {
+          ...activeRoomParamsRef.current,
+          token: currentToken
+        });
+      }
+    };
+
+    newSocket.on('connect', () => {
       console.log('⚡ Socket connected:', newSocket.id);
+      attemptRejoin();
     });
 
     newSocket.on('disconnect', (reason) => {
@@ -66,7 +80,8 @@ export function SocketProvider({ children }) {
     });
 
     newSocket.on('reconnect', () => {
-      setConnectionState('Connected');
+      console.log('🔄 Socket reconnected:', newSocket.id);
+      attemptRejoin();
       addToast('Connection restored', 'success');
     });
 
@@ -252,10 +267,12 @@ export function SocketProvider({ children }) {
 
     const interval = setInterval(requestSync, 3000);
     window.addEventListener('focus', requestSync);
+    document.addEventListener('visibilitychange', requestSync);
 
     return () => {
       clearInterval(interval);
       window.removeEventListener('focus', requestSync);
+      document.removeEventListener('visibilitychange', requestSync);
     };
   }, [room?.roomCode]);
 
@@ -271,6 +288,14 @@ export function SocketProvider({ children }) {
         targetUserId = localStorage.getItem(`watchparty_host_${cleanCode}`);
       } catch (e) {}
     }
+
+    // Save active room parameters for automatic transparent rejoining on reconnect
+    activeRoomParamsRef.current = {
+      roomCode: cleanCode,
+      username,
+      userId: targetUserId,
+      password
+    };
 
     socketRef.current.emit('join_room', {
       roomCode: cleanCode,
@@ -323,6 +348,7 @@ export function SocketProvider({ children }) {
   };
 
   const leaveRoomSocket = () => {
+    activeRoomParamsRef.current = null;
     if (socketRef.current) socketRef.current.emit('leave_room');
     setRoom(null);
   };

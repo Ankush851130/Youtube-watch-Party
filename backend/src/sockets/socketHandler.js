@@ -299,25 +299,34 @@ export function setupSocketHandlers(io) {
       });
     });
 
-    // ================= 11. LEAVE ROOM =================
+    // ================= 11. LEAVE ROOM (Explicit) =================
     socket.on('leave_room', () => {
-      handleDisconnect(socket, io);
+      handleDisconnect(socket, io, true);
     });
 
-    // ================= 12. DISCONNECT =================
+    // ================= 12. DISCONNECT (Unexpected / Transport renewal) =================
     socket.on('disconnect', () => {
-      handleDisconnect(socket, io);
+      handleDisconnect(socket, io, false);
     });
   });
 }
 
-function handleDisconnect(socket, io) {
-  const result = roomManager.leaveRoom(socket.id);
+function handleDisconnect(socket, io, isExplicit = false) {
+  const result = roomManager.leaveRoom(socket.id, isExplicit);
   if (!result) return;
 
+  socket.leave(result.room.roomId);
+
+  // If in grace period, start timer to finalize only if they don't reconnect
+  if (result.inGracePeriod) {
+    const { room, participant } = result;
+    participant.disconnectTimer = setTimeout(() => {
+      roomManager.finalizeDisconnect(room.roomId, participant.userId, io);
+    }, 45000); // 45 seconds grace period
+    return;
+  }
+
   const { room, leftUserId, leftUsername, participants } = result;
-  
-  socket.leave(room.roomId);
 
   io.to(room.roomId).emit('user_left', {
     userId: leftUserId,
@@ -327,5 +336,5 @@ function handleDisconnect(socket, io) {
     message: `${leftUsername} left the room`
   });
 
-  console.log(`🚪 User left room: ${leftUsername} from room ${room.roomCode}`);
+  console.log(`🚪 User explicitly left room: ${leftUsername} from room ${room.roomCode}`);
 }
