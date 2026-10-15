@@ -84,7 +84,7 @@ export default function SidebarPanel({ onOpenShare, onOpenRoleModal }) {
   };
 
   return (
-    <aside className="lg:col-span-4 xl:col-span-4 flex flex-col bg-[#121212] border border-white/[0.08] rounded-2xl shadow-xl overflow-hidden min-h-[440px] sm:min-h-[540px] max-h-[620px] lg:max-h-[820px]">
+    <aside className="w-full flex flex-col bg-[#121212] border border-white/[0.08] rounded-2xl shadow-xl overflow-hidden min-h-[440px] sm:min-h-[540px] max-h-[620px] lg:max-h-[820px]">
       {/* 3 Tabs Header: Up Next / People / Chat */}
       <div className="flex items-center p-1 sm:p-1.5 bg-[#0E0E0E]/90 border-b border-white/[0.08]">
         <button 

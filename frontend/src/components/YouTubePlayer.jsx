@@ -628,7 +628,7 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
       onMouseMove={handleMouseMoveOnPlayer}
       onMouseLeave={handleMouseLeavePlayer}
       onClick={needsUnmute ? handleUserClickToUnmute : undefined}
-      className={`relative w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-2xl shadow-black/90 border border-white/[0.08] group select-none transition-all ${isControlsVisible ? 'cursor-default' : 'cursor-none'
+      className={`relative w-full h-[34vh] min-h-[265px] max-h-[380px] sm:h-auto sm:min-h-0 sm:max-h-none sm:aspect-video rounded-none sm:rounded-2xl overflow-hidden bg-black shadow-2xl shadow-black/90 border-y sm:border border-white/[0.08] group select-none transition-all ${isControlsVisible ? 'cursor-default' : 'cursor-none'
         }`}
     >
       {/* YouTube Player Container */}
@@ -660,39 +660,39 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/30 backdrop-blur-[2px]"></div>
 
           {/* Center Glassmorphic Action Card */}
-          <div className="relative z-10 p-6 sm:p-8 max-w-xl text-center space-y-4 bg-black/70 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl mx-4 animate-fade-in">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#FF0000]/20 border border-[#FF0000]/50 mx-auto flex items-center justify-center text-[#FF0000] shadow-[0_0_25px_rgba(255,0,0,0.5)] animate-pulse">
-              <span className="material-symbols-outlined text-[32px] sm:text-[40px]">play_circle</span>
+          <div className="relative z-10 p-4 sm:p-8 max-w-xl text-center space-y-2.5 sm:space-y-4 bg-black/75 backdrop-blur-xl border border-white/20 rounded-2xl sm:rounded-3xl shadow-2xl mx-3 sm:mx-4 animate-fade-in">
+            <div className="w-11 h-11 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-[#FF0000]/20 border border-[#FF0000]/50 mx-auto flex items-center justify-center text-[#FF0000] shadow-[0_0_25px_rgba(255,0,0,0.5)] animate-pulse">
+              <span className="material-symbols-outlined text-[26px] sm:text-[40px]">play_circle</span>
             </div>
 
-            <div className="space-y-1.5">
-              <h2 className="text-xl sm:text-3xl font-display font-extrabold text-white tracking-tight">
+            <div className="space-y-1">
+              <h2 className="text-base sm:text-2xl lg:text-3xl font-display font-extrabold text-white tracking-tight">
                 Watch Together, From Anywhere
               </h2>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              <p className="text-[11px] sm:text-sm text-slate-300 leading-relaxed line-clamp-2 sm:line-clamp-none">
                 {canControl
-                  ? "Search or paste any YouTube video link to start synchronized live playback for everyone!"
-                  : "Waiting for Host to pick a video. Live synchronized playback will start automatically!"}
+                  ? "Search or paste any YouTube link to start synchronized live playback!"
+                  : "Waiting for Host to pick a video. Live playback will start automatically!"}
               </p>
             </div>
 
             {canControl ? (
-              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 pt-1">
                 <button
                   onClick={onOpenSearch}
-                  className="px-6 py-3 rounded-full bg-[#FF0000] hover:bg-[#CC0000] active:scale-95 text-white font-extrabold text-xs sm:text-sm shadow-[0_0_20px_rgba(255,0,0,0.6)] border border-white/20 flex items-center gap-2 transition-all cursor-pointer hover:scale-105"
+                  className="px-4 py-2 sm:px-6 sm:py-3 rounded-full bg-[#FF0000] hover:bg-[#CC0000] active:scale-95 text-white font-extrabold text-[11px] sm:text-sm shadow-[0_0_20px_rgba(255,0,0,0.6)] border border-white/20 flex items-center gap-1.5 sm:gap-2 transition-all cursor-pointer hover:scale-105"
                 >
-                  <span className="material-symbols-outlined text-[20px]">search</span>
-                  <span>Search YouTube Video</span>
+                  <span className="material-symbols-outlined text-[17px] sm:text-[20px]">search</span>
+                  <span>Search Video</span>
                 </button>
 
                 {onOpenPasteUrl && (
                   <button
                     onClick={onOpenPasteUrl}
-                    className="px-5 py-3 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white font-semibold text-xs sm:text-sm border border-white/20 flex items-center gap-2 transition-all cursor-pointer hover:scale-105 backdrop-blur-md"
+                    className="px-3.5 py-2 sm:px-5 sm:py-3 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white font-semibold text-[11px] sm:text-sm border border-white/20 flex items-center gap-1.5 sm:gap-2 transition-all cursor-pointer hover:scale-105 backdrop-blur-md"
                   >
-                    <span className="material-symbols-outlined text-[20px]">link</span>
-                    <span>Paste YouTube URL</span>
+                    <span className="material-symbols-outlined text-[17px] sm:text-[20px]">link</span>
+                    <span>Paste URL</span>
                   </button>
                 )}
               </div>

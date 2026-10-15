@@ -138,10 +138,10 @@ export default function WatchPartyPage() {
       />
 
       {/* Main Digital Theater Stage */}
-      <main className="flex-1 w-full max-w-[1780px] mx-auto px-2 sm:px-6 lg:px-8 py-3 sm:py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
+      <main className="flex-1 w-full max-w-[1780px] mx-auto px-0 sm:px-6 lg:px-8 py-0 sm:py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-6 items-start">
           {/* Hero Video Player Section */}
-          <section className="lg:col-span-8 xl:col-span-8 flex flex-col gap-3.5 sm:gap-5 min-w-0">
+          <section className="lg:col-span-8 xl:col-span-8 flex flex-col gap-3 sm:gap-5 min-w-0">
             <YouTubePlayer 
               videoId={currentVideoId}
               isPlaying={isPlaying}
@@ -150,19 +150,23 @@ export default function WatchPartyPage() {
               onOpenPasteUrl={() => setIsPasteUrlOpen(true)}
             />
 
-            <VideoInfoRow 
-              onOpenSearch={() => setIsSearchOpen(true)}
-              onOpenPasteUrl={() => setIsPasteUrlOpen(true)}
-              onOpenShare={() => setIsShareOpen(true)}
-              onLeaveRoom={handleLeaveRoom}
-            />
+            <div className="px-3 sm:px-0">
+              <VideoInfoRow 
+                onOpenSearch={() => setIsSearchOpen(true)}
+                onOpenPasteUrl={() => setIsPasteUrlOpen(true)}
+                onOpenShare={() => setIsShareOpen(true)}
+                onLeaveRoom={handleLeaveRoom}
+              />
+            </div>
           </section>
 
           {/* Secondary Sidebar: People & Chat */}
-          <SidebarPanel 
-            onOpenShare={() => setIsShareOpen(true)}
-            onOpenRoleModal={handleOpenRoleModal}
-          />
+          <div className="px-3 sm:px-0 lg:col-span-4 xl:col-span-4">
+            <SidebarPanel 
+              onOpenShare={() => setIsShareOpen(true)}
+              onOpenRoleModal={handleOpenRoleModal}
+            />
+          </div>
         </div>
       </main>
 
