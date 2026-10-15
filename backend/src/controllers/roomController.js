@@ -11,7 +11,7 @@ export async function createRoomController(req, res) {
     }
 
     let activeHostUserId = bodyHostUserId || null;
-    if (!activeHostUserId && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
       try {
         const token = req.headers.authorization.split(' ')[1];
         const decoded = jwt.verify(token, JWT_SECRET);
@@ -19,8 +19,15 @@ export async function createRoomController(req, res) {
           activeHostUserId = decoded.userId;
         }
       } catch (e) {
-        // Fallback to null if token verification fails
+        console.warn('JWT verification error in create room:', e.message);
       }
+    }
+
+    if (!activeHostUserId) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Authentication required. Please sign in or register first to create a watch party.' 
+      });
     }
 
     const roomData = await roomManager.createRoom(

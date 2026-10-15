@@ -39,6 +39,13 @@ export function setupSocketHandlers(io) {
         return;
       }
 
+      if (!authUserId) {
+        const errPayload = { message: 'Authentication required. Please sign in or register first to join a watch party.' };
+        if (typeof callback === 'function') callback({ error: errPayload.message });
+        socket.emit('action_error', errPayload);
+        return;
+      }
+
       const result = roomManager.joinRoom(targetRoomKey, authUsername, socket.id, authUserId, password);
 
       if (result.error) {

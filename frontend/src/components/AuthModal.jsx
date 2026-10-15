@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-export default function AuthModal({ isOpen, onClose, initialTab = 'login', onSuccess }) {
+export default function AuthModal({ isOpen, onClose, initialTab = 'login', notice = '', onSuccess }) {
   const { login, register } = useAuth();
 
   const [tab, setTab] = useState(initialTab); // 'login' | 'register'
@@ -19,6 +19,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login', onSuc
     setErrorMsg('');
     setIsSubmitting(true);
 
+    let loggedInUser = null;
     try {
       if (tab === 'login') {
         if (!email.trim() || !password) {
@@ -26,7 +27,8 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login', onSuc
           setIsSubmitting(false);
           return;
         }
-        await login(email.trim(), password);
+        const res = await login(email.trim(), password);
+        loggedInUser = res?.user;
       } else {
         if (!username.trim() || !email.trim() || !password) {
           setErrorMsg('Please fill in all required fields.');
@@ -38,10 +40,11 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login', onSuc
           setIsSubmitting(false);
           return;
         }
-        await register(username.trim(), email.trim(), password);
+        const res = await register(username.trim(), email.trim(), password);
+        loggedInUser = res?.user;
       }
 
-      if (onSuccess) onSuccess();
+      if (onSuccess) onSuccess(loggedInUser);
       if (onClose) onClose();
     } catch (err) {
       setErrorMsg(err.message || 'Authentication failed. Please try again.');
@@ -51,31 +54,37 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login', onSuc
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-      <div className="bg-[#121212] border border-white/10 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-5 relative text-white">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+      <div className="bg-[#121212] border border-white/10 w-full max-w-md rounded-2xl p-4 sm:p-6 shadow-2xl space-y-4 sm:space-y-5 relative text-white max-h-[92vh] overflow-y-auto">
         
         {/* Close Button */}
         {onClose && (
           <button 
             onClick={onClose}
-            className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors cursor-pointer w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 text-slate-400 hover:text-white transition-colors cursor-pointer w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/5 flex items-center justify-center text-xs sm:text-sm"
           >
             ✕
           </button>
         )}
 
         {/* Header */}
-        <div className="text-center space-y-2 pt-2">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#FF0000] to-[#FF4D4D] mx-auto flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-[#FF0000]/30">
+        <div className="text-center space-y-1.5 sm:space-y-2 pt-1 sm:pt-2">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr from-[#FF0000] to-[#FF4D4D] mx-auto flex items-center justify-center text-white text-lg sm:text-xl font-bold shadow-lg shadow-[#FF0000]/30">
             🎬
           </div>
-          <h2 className="text-2xl font-bold text-white tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
             {tab === 'login' ? 'Welcome Back' : 'Create Account'}
           </h2>
-          <p className="text-xs text-slate-400">
-            {tab === 'login' 
-              ? 'Log in to join watch parties and control synchronized playback.' 
-              : 'Sign up for a free account to host or join YouTube Watch Parties.'}
+          <p className="text-[11px] sm:text-xs text-slate-300 leading-relaxed px-1">
+            {notice ? (
+              <span className="inline-block bg-[#FF0000]/10 border border-[#FF0000]/30 text-[#FF8080] font-medium px-3 py-1.5 rounded-xl">
+                🔒 {notice}
+              </span>
+            ) : (
+              tab === 'login' 
+                ? 'Log in to join watch parties and control synchronized playback.' 
+                : 'Sign up for a free account to host or join YouTube Watch Parties.'
+            )}
           </p>
         </div>
 

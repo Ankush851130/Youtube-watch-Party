@@ -102,51 +102,52 @@ export default function Navbar({ onOpenSearch, onOpenShare, onLeaveRoom, onOpenA
 
   return (
     <header className="sticky top-0 z-40 w-full bg-[#0E0E0E]/95 backdrop-blur-xl border-b border-white/[0.08] transition-all">
-      <div className="max-w-[1780px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <div className="max-w-[1780px] mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
         {/* Brand Logo */}
-        <div className="flex items-center gap-3">
-          <a className="flex items-center gap-2.5 group" href="/">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-[#FF0000] shadow-lg shadow-[#FF0000]/25 group-hover:scale-105 transition-transform duration-300 overflow-hidden text-white font-extrabold text-sm">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <a className="flex items-center gap-2 sm:gap-2.5 group" href="/">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center bg-[#FF0000] shadow-lg shadow-[#FF0000]/25 group-hover:scale-105 transition-transform duration-300 overflow-hidden text-white font-extrabold text-xs sm:text-sm">
               ▶
             </div>
             <div className="flex flex-col">
-              <span className="font-display font-extrabold tracking-tight text-base text-white flex items-center gap-1.5">
-                WATCHTOGETHER
-                <span className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-[#FF0000]/10 text-[#FF4D4D] border border-[#FF0000]/20 uppercase tracking-widest hidden sm:inline">Cinema</span>
+              <span className="font-display font-extrabold tracking-tight text-sm sm:text-base text-white flex items-center gap-1.5">
+                <span>WATCHTOGETHER</span>
+                <span className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-[#FF0000]/10 text-[#FF4D4D] border border-[#FF0000]/20 uppercase tracking-widest hidden md:inline">Cinema</span>
               </span>
-              <span className="text-[11px] text-[#AAAAAA] -mt-0.5 tracking-tight font-medium hidden md:inline">Sync YouTube instantly</span>
+              <span className="text-[11px] text-[#AAAAAA] -mt-0.5 tracking-tight font-medium hidden lg:inline">Sync YouTube instantly</span>
             </div>
           </a>
         </div>
 
         {/* Center Room Info Capsule */}
-        <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] backdrop-blur-md">
-          <span className="w-2 h-2 rounded-full bg-[#22C55E] shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse"></span>
-          <span className="text-sm sm:text-base font-semibold text-white max-w-[140px] sm:max-w-[260px] truncate">{roomName}</span>
-          <span className="text-[#717171] hidden sm:inline">•</span>
-          <span className="text-xs font-mono font-medium text-[#AAAAAA] bg-white/[0.05] px-2 py-0.5 rounded-full hidden sm:flex items-center gap-1">
+        <div className="hidden sm:flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] backdrop-blur-md min-w-0">
+          <span className="w-2 h-2 rounded-full bg-[#22C55E] shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse shrink-0"></span>
+          <span className="text-xs sm:text-sm md:text-base font-semibold text-white max-w-[120px] sm:max-w-[200px] lg:max-w-[260px] truncate">{roomName}</span>
+          <span className="text-[#717171] hidden md:inline">•</span>
+          <span className="text-[11px] sm:text-xs font-mono font-medium text-[#AAAAAA] bg-white/[0.05] px-2 py-0.5 rounded-full hidden md:flex items-center gap-1 shrink-0">
             <span className="material-symbols-outlined text-[13px] text-[#AAAAAA]">group</span>
-            <span>{participantCount} watching</span>
+            <span>{participantCount}</span>
           </span>
         </div>
 
         {/* Right Header Actions */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           {/* Room Code Pill */}
           <button 
             onClick={copyRoomCode}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-300 hover:text-white transition-all text-xs font-mono group cursor-pointer"
+            className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-300 hover:text-white transition-all text-xs font-mono group cursor-pointer"
             title="Copy Room Passcode"
           >
-            <span className="text-[#717171] text-[10px] uppercase font-bold tracking-wider">CODE</span>
-            <span className="text-[#FF8080] font-semibold tracking-wider">{roomCode}</span>
-            <span className="material-symbols-outlined text-[14px] text-[#AAAAAA] group-hover:text-[#FF8080] transition-colors">content_copy</span>
+            <span className="text-[#717171] text-[9px] sm:text-[10px] uppercase font-bold tracking-wider hidden xs:inline">CODE</span>
+            <span className="text-[#FF8080] font-semibold tracking-wider text-[11px] sm:text-xs">{roomCode}</span>
+            <span className="material-symbols-outlined text-[13px] sm:text-[14px] text-[#AAAAAA] group-hover:text-[#FF8080] transition-colors">content_copy</span>
           </button>
 
           {/* Share Button */}
           <button 
             onClick={onOpenShare}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FF0000] hover:bg-[#CC0000] text-white font-medium text-xs shadow-md shadow-[#FF0000]/25 transition-all cursor-pointer"
+            className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-[#FF0000] hover:bg-[#CC0000] text-white font-medium text-xs shadow-md shadow-[#FF0000]/25 transition-all cursor-pointer"
+            title="Share Room"
           >
             <span className="material-symbols-outlined text-[15px]">ios_share</span>
             <span className="hidden sm:inline">Share</span>
@@ -155,11 +156,11 @@ export default function Navbar({ onOpenSearch, onOpenShare, onLeaveRoom, onOpenA
           <div className="h-4 w-px bg-white/10 mx-0.5 hidden sm:block"></div>
 
           {/* User Profile Pill */}
-          <div className="flex items-center gap-2 pl-1">
+          <div className="flex items-center gap-2 pl-0.5 sm:pl-1">
             {authUser?.avatar ? (
-              <img src={authUser.avatar} alt={authUser.username} className="w-8 h-8 rounded-full ring-2 ring-[#FF0000]/40 object-cover" />
+              <img src={authUser.avatar} alt={authUser.username} className="w-7 h-7 sm:w-8 sm:h-8 rounded-full ring-2 ring-[#FF0000]/40 object-cover" />
             ) : (
-              <div className="w-8 h-8 rounded-full bg-[#FF0000] flex items-center justify-center text-white text-xs font-bold ring-2 ring-[#FF0000]/30 shadow-sm shadow-[#FF0000]/30 uppercase">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#FF0000] flex items-center justify-center text-white text-xs font-bold ring-2 ring-[#FF0000]/30 shadow-sm shadow-[#FF0000]/30 uppercase">
                 {(authUser?.username || username).charAt(0)}
               </div>
             )}
@@ -228,8 +229,8 @@ export default function Navbar({ onOpenSearch, onOpenShare, onLeaveRoom, onOpenA
       </div>
 
       {/* Secondary YouTube Live Inline Search Bar */}
-      <div className="border-t border-white/[0.08] bg-[#0E0E0E]/95 px-4 sm:px-6 lg:px-8 py-2.5 backdrop-blur-md">
-        <div className="max-w-[1780px] mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+      <div className="border-t border-white/[0.08] bg-[#0E0E0E]/95 px-3 sm:px-6 lg:px-8 py-2 sm:py-2.5 backdrop-blur-md">
+        <div className="max-w-[1780px] mx-auto flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2 sm:gap-3">
           {/* Left: Search Badge */}
           <div className="hidden lg:flex items-center gap-2 shrink-0 select-none">
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FF0000]/10 border border-[#FF0000]/25 text-[#FF4D4D] text-xs font-semibold">
@@ -243,8 +244,8 @@ export default function Navbar({ onOpenSearch, onOpenShare, onLeaveRoom, onOpenA
           <div ref={searchContainerRef} className="w-full max-w-2xl relative">
             <form onSubmit={handleSearchSubmit} className="w-full flex items-center">
               <div className="w-full flex items-center bg-[#121212] border border-white/15 rounded-full overflow-hidden focus-within:border-[#FF0000] focus-within:ring-1 focus-within:ring-[#FF0000] transition-all shadow-inner group">
-                <div className="pl-4 pr-2 text-[#717171] flex items-center pointer-events-none group-focus-within:text-[#FF4D4D]">
-                  <span className="material-symbols-outlined text-[20px]">
+                <div className="pl-3 sm:pl-4 pr-1.5 sm:pr-2 text-[#717171] flex items-center pointer-events-none group-focus-within:text-[#FF4D4D]">
+                  <span className="material-symbols-outlined text-[18px] sm:text-[20px]">
                     {isSearching ? 'progress_activity' : 'search'}
                   </span>
                 </div>
@@ -255,8 +256,8 @@ export default function Navbar({ onOpenSearch, onOpenShare, onLeaveRoom, onOpenA
                   onFocus={() => {
                     if (searchResults.length > 0) setShowSearchDropdown(true);
                   }}
-                  placeholder="Search YouTube videos, songs, or paste any video link..." 
-                  className="w-full bg-transparent py-2.5 text-xs sm:text-sm text-white placeholder:text-[#717171] outline-none font-normal selection:bg-[#FF0000]/30 selection:text-white" 
+                  placeholder="Search YouTube or paste video link..." 
+                  className="w-full bg-transparent py-2 sm:py-2.5 text-xs sm:text-sm text-white placeholder:text-[#717171] outline-none font-normal selection:bg-[#FF0000]/30 selection:text-white" 
                 />
                 {searchQuery && (
                   <button 
@@ -264,15 +265,15 @@ export default function Navbar({ onOpenSearch, onOpenShare, onLeaveRoom, onOpenA
                     onClick={() => { setSearchQuery(''); setShowSearchDropdown(false); }}
                     className="p-1 text-[#717171] hover:text-white mr-1 transition-colors cursor-pointer"
                   >
-                    <span className="material-symbols-outlined text-[18px]">close</span>
+                    <span className="material-symbols-outlined text-[16px] sm:text-[18px]">close</span>
                   </button>
                 )}
                 <button 
                   type="submit" 
-                  className="h-10 px-4 sm:px-5 bg-[#202020] hover:bg-[#FF0000] border-l border-white/10 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer font-semibold text-xs gap-1" 
+                  className="h-9 sm:h-10 px-3.5 sm:px-5 bg-[#202020] hover:bg-[#FF0000] border-l border-white/10 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer font-semibold text-xs gap-1 shrink-0" 
                   title="Search YouTube"
                 >
-                  <span className="material-symbols-outlined text-[18px]">search</span>
+                  <span className="material-symbols-outlined text-[17px] sm:text-[18px]">search</span>
                   <span className="hidden sm:inline">Search</span>
                 </button>
               </div>
@@ -280,8 +281,8 @@ export default function Navbar({ onOpenSearch, onOpenShare, onLeaveRoom, onOpenA
 
             {/* FLOATING INLINE YOUTUBE SEARCH RESULTS DROPDOWN (On Same Page) */}
             {showSearchDropdown && searchResults.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-[#141414] border border-white/15 rounded-2xl shadow-2xl z-50 overflow-hidden backdrop-blur-2xl max-h-[420px] overflow-y-auto">
-                <div className="p-2.5 bg-[#1A1A1A] border-b border-white/10 flex items-center justify-between text-xs text-[#AAAAAA]">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-[#141414] border border-white/15 rounded-2xl shadow-2xl z-50 overflow-hidden backdrop-blur-2xl max-h-[60vh] sm:max-h-[420px] overflow-y-auto">
+                <div className="p-2 sm:p-2.5 bg-[#1A1A1A] border-b border-white/10 flex items-center justify-between text-xs text-[#AAAAAA]">
                   <span className="font-semibold flex items-center gap-1 text-white">
                     <span className="text-[#FF0000]">▶</span> YouTube Live Results
                   </span>
@@ -293,10 +294,10 @@ export default function Navbar({ onOpenSearch, onOpenShare, onLeaveRoom, onOpenA
                     <div 
                       key={item.videoId}
                       onClick={() => handlePlayVideo(item.videoId, item.title)}
-                      className="group flex items-center justify-between gap-3 p-2 rounded-xl hover:bg-white/[0.08] transition-all cursor-pointer border border-transparent hover:border-white/10"
+                      className="group flex items-center justify-between gap-2.5 sm:gap-3 p-2 rounded-xl hover:bg-white/[0.08] transition-all cursor-pointer border border-transparent hover:border-white/10"
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="relative w-24 aspect-video rounded-lg overflow-hidden bg-slate-800 shrink-0 border border-white/10">
+                      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                        <div className="relative w-20 sm:w-24 aspect-video rounded-lg overflow-hidden bg-slate-800 shrink-0 border border-white/10">
                           <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover" />
                           <span className="absolute bottom-1 right-1 bg-black/85 text-white font-mono text-[9px] px-1 py-0.5 rounded">
                             {item.duration}
@@ -306,7 +307,7 @@ export default function Navbar({ onOpenSearch, onOpenShare, onLeaveRoom, onOpenA
                           <h4 className="text-xs font-semibold text-white group-hover:text-[#FF8080] truncate transition-colors">
                             {item.title}
                           </h4>
-                          <p className="text-[11px] text-[#AAAAAA] truncate mt-0.5">
+                          <p className="text-[10px] sm:text-[11px] text-[#AAAAAA] truncate mt-0.5">
                             {item.channelTitle} • <span className="text-slate-400 font-mono">{item.views}</span>
                           </p>
                         </div>
@@ -318,9 +319,9 @@ export default function Navbar({ onOpenSearch, onOpenShare, onLeaveRoom, onOpenA
                           e.stopPropagation();
                           handlePlayVideo(item.videoId, item.title);
                         }}
-                        className="shrink-0 px-3 py-1.5 rounded-lg bg-[#FF0000] hover:bg-[#CC0000] text-white text-xs font-semibold shadow-md flex items-center gap-1 transition-all cursor-pointer"
+                        className="shrink-0 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-[#FF0000] hover:bg-[#CC0000] text-white text-[11px] sm:text-xs font-semibold shadow-md flex items-center gap-1 transition-all cursor-pointer"
                       >
-                        <span className="material-symbols-outlined text-[14px]">play_arrow</span>
+                        <span className="material-symbols-outlined text-[13px] sm:text-[14px]">play_arrow</span>
                         <span>Play</span>
                       </button>
                     </div>
@@ -331,7 +332,7 @@ export default function Navbar({ onOpenSearch, onOpenShare, onLeaveRoom, onOpenA
           </div>
 
           {/* Right: Instant Suggestion Chips */}
-          <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto justify-start md:justify-end shrink-0 py-0.5">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar w-full md:w-auto justify-start md:justify-end shrink-0 py-0.5 -mx-1 px-1">
             {['Arijit Singh', 'Planet Earth', 'Interstellar', 'Lofi Beats', 'Trailer'].map((chip) => (
               <button 
                 key={chip}

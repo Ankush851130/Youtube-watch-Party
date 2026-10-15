@@ -796,34 +796,35 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
         }`}></div>
 
       {/* Top-Left Source Bug & Active Quality Indicator */}
-      <div className={`absolute top-4 left-4 flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-xs font-medium transition-all duration-300 ${isControlsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
+      <div className={`absolute top-2.5 left-2.5 sm:top-4 sm:left-4 flex items-center gap-1.5 sm:gap-2 bg-black/70 backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-white/10 text-[10px] sm:text-xs font-medium transition-all duration-300 ${isControlsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
         }`}>
-        <span className="w-2 h-2 rounded-full bg-[#FF0000]"></span>
-        <span className="text-white font-semibold">YouTube Stream</span>
-        <span className="text-[#FF8080] font-mono text-[11px] font-bold">• Auto (Adaptive)</span>
-        <span className="text-amber-400 font-mono text-[11px] font-bold">• {playbackSpeed}x</span>
+        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#FF0000]"></span>
+        <span className="text-white font-semibold hidden xs:inline">YouTube Stream</span>
+        <span className="text-white font-semibold xs:hidden">YT</span>
+        <span className="text-[#FF8080] font-mono text-[10px] sm:text-[11px] font-bold">• Auto</span>
+        <span className="text-amber-400 font-mono text-[10px] sm:text-[11px] font-bold">• {playbackSpeed}x</span>
       </div>
 
       {/* Top-Right Live Sync Telemetry Pill */}
-      <div className={`absolute top-4 right-4 flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#22C55E]/30 text-xs shadow-lg transition-all duration-300 ${isControlsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
+      <div className={`absolute top-2.5 right-2.5 sm:top-4 sm:right-4 flex items-center gap-1.5 sm:gap-2 bg-black/70 backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-[#22C55E]/30 text-[10px] sm:text-xs shadow-lg transition-all duration-300 ${isControlsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
         }`}>
-        <span className={`w-2 h-2 rounded-full ${connectionState === 'Connected' ? 'bg-[#22C55E] shadow-[0_0_8px_#22c55e] animate-pulse' : 'bg-amber-400'}`}></span>
-        <span className={`${connectionState === 'Connected' ? 'text-[#4ade80]' : 'text-amber-400'} font-medium text-xs tracking-wide`}>
+        <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${connectionState === 'Connected' ? 'bg-[#22C55E] shadow-[0_0_8px_#22c55e] animate-pulse' : 'bg-amber-400'}`}></span>
+        <span className={`${connectionState === 'Connected' ? 'text-[#4ade80]' : 'text-amber-400'} font-medium text-[10px] sm:text-xs tracking-wide`}>
           {connectionState === 'Connected' ? 'Synced' : connectionState}
         </span>
       </div>
 
       {/* Floating Reaction Overlay Stream */}
-      <div className="absolute bottom-24 right-6 pointer-events-none flex flex-col items-center gap-2 z-20">
+      <div className="absolute bottom-16 sm:bottom-24 right-3 sm:right-6 pointer-events-none flex flex-col items-center gap-2 z-20">
         {floatingEmojis.map((item) => (
-          <div key={item.id} className="animate-float-reaction text-2xl select-none">
+          <div key={item.id} className="animate-float-reaction text-xl sm:text-2xl select-none">
             {item.emoji}
           </div>
         ))}
       </div>
 
       {/* Controls Bar - YouTube Style Auto-Hiding Controls */}
-      <div className={`absolute bottom-3 inset-x-3 sm:bottom-4 sm:inset-x-4 bg-[#121212]/90 backdrop-blur-xl border border-white/[0.08] rounded-xl px-4 py-2.5 flex flex-col gap-2 shadow-2xl transition-all duration-300 z-30 ${isControlsVisible ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-3 pointer-events-none'
+      <div className={`absolute bottom-2 inset-x-2 sm:bottom-4 sm:inset-x-4 bg-[#121212]/95 backdrop-blur-xl border border-white/[0.08] rounded-xl px-2.5 py-1.5 sm:px-4 sm:py-2.5 flex flex-col gap-1.5 sm:gap-2 shadow-2xl transition-all duration-300 z-30 ${isControlsVisible ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-3 pointer-events-none'
         }`}>
         {/* Scrubber Rail */}
         <div
@@ -850,37 +851,37 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
         </div>
 
         {/* Lower Toolbar */}
-        <div className="flex items-center justify-between gap-3 text-slate-300">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-1.5 sm:gap-3 text-slate-300">
+          <div className="flex items-center gap-1 sm:gap-3 min-w-0">
             <button
               onClick={handleTogglePlay}
-              className={`w-9 h-9 rounded-full ${canControl ? 'bg-[#FF0000] hover:bg-[#CC0000] cursor-pointer' : 'bg-neutral-800 cursor-not-allowed opacity-60'} text-white flex items-center justify-center transition-all shadow-md shadow-[#FF0000]/30 hover:scale-105 active:scale-95`}
+              className={`w-8 h-8 sm:w-9 sm:h-9 shrink-0 rounded-full ${canControl ? 'bg-[#FF0000] hover:bg-[#CC0000] cursor-pointer' : 'bg-neutral-800 cursor-not-allowed opacity-60'} text-white flex items-center justify-center transition-all shadow-md shadow-[#FF0000]/30 hover:scale-105 active:scale-95`}
               title={canControl ? (isPlaying ? 'Pause' : 'Play') : 'Playback locked to Host/Moderator'}
             >
-              <span className="material-symbols-outlined text-[22px]">
+              <span className="material-symbols-outlined text-[18px] sm:text-[22px]">
                 {isPlaying ? 'pause' : 'play_arrow'}
               </span>
             </button>
 
             <button
               onClick={() => handleSkipSeconds(-10)}
-              className="p-1.5 hover:text-white text-slate-300 transition-colors cursor-pointer"
+              className="p-1 sm:p-1.5 hover:text-white text-slate-300 transition-colors cursor-pointer shrink-0"
               title="Rewind 10s"
             >
-              <span className="material-symbols-outlined text-[22px]">replay_10</span>
+              <span className="material-symbols-outlined text-[18px] sm:text-[22px]">replay_10</span>
             </button>
 
             <button
               onClick={() => handleSkipSeconds(10)}
-              className="p-1.5 hover:text-white text-slate-300 transition-colors cursor-pointer"
+              className="p-1 sm:p-1.5 hover:text-white text-slate-300 transition-colors cursor-pointer shrink-0"
               title="Forward 10s"
             >
-              <span className="material-symbols-outlined text-[22px]">forward_10</span>
+              <span className="material-symbols-outlined text-[18px] sm:text-[22px]">forward_10</span>
             </button>
 
-            <div className="flex items-center gap-2 group/volume">
-              <button onClick={handleVolumeToggle} className="p-1.5 hover:text-white text-slate-300 transition-colors cursor-pointer">
-                <span className="material-symbols-outlined text-[22px]">
+            <div className="flex items-center gap-1 sm:gap-2 group/volume shrink-0">
+              <button onClick={handleVolumeToggle} className="p-1 sm:p-1.5 hover:text-white text-slate-300 transition-colors cursor-pointer">
+                <span className="material-symbols-outlined text-[18px] sm:text-[22px]">
                   {isMuted || volume === 0 ? 'volume_off' : volume < 50 ? 'volume_down' : 'volume_up'}
                 </span>
               </button>
@@ -890,28 +891,28 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
                 max="100"
                 value={isMuted ? 0 : volume}
                 onChange={handleVolumeChange}
-                className="w-16 sm:w-20 h-1 accent-[#FF0000] bg-white/20 rounded-full cursor-pointer"
+                className="w-12 sm:w-20 h-1 accent-[#FF0000] bg-white/20 rounded-full cursor-pointer hidden md:block"
               />
             </div>
 
-            <div className="font-mono text-sm text-[#AAAAAA] pl-2 flex items-center gap-1.5 select-none">
+            <div className="font-mono text-[10px] sm:text-xs md:text-sm text-[#AAAAAA] pl-0.5 sm:pl-2 flex items-center gap-1 select-none shrink-0">
               <span className="text-white font-bold">{formatTime(localCurrentTime)}</span>
               <span className="text-[#717171]">/</span>
               <span className="font-medium">{formatTime(duration)}</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             {/* SPEED SELECTOR MENU & BUTTON */}
             <div ref={speedMenuRef} className="relative">
               <button
                 onClick={() => setIsSpeedMenuOpen(!isSpeedMenuOpen)}
-                className="flex items-center gap-1 px-2.5 py-1 rounded bg-white/10 hover:bg-[#FF0000]/30 border border-white/15 text-xs font-mono font-bold text-white tracking-wide transition-all cursor-pointer shadow-sm hover:scale-105"
-                title="Change Video Speed (0.25x - 2.0x)"
+                className="flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded bg-white/10 hover:bg-[#FF0000]/30 border border-white/15 text-[10px] sm:text-xs font-mono font-bold text-white tracking-wide transition-all cursor-pointer shadow-sm hover:scale-105"
+                title="Change Video Speed"
               >
-                <span className="material-symbols-outlined text-[15px] text-amber-400">speed</span>
+                <span className="material-symbols-outlined text-[13px] sm:text-[15px] text-amber-400">speed</span>
                 <span>{playbackSpeed === 1 ? '1.0x' : `${playbackSpeed}x`}</span>
-                <span className="material-symbols-outlined text-[14px] text-[#AAAAAA]">expand_less</span>
+                <span className="material-symbols-outlined text-[12px] sm:text-[14px] text-[#AAAAAA]">expand_less</span>
               </button>
 
               {/* Speed Selection Popup Menu */}
@@ -944,15 +945,15 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
 
             {/* AUTOMATIC ADAPTIVE QUALITY BADGE */}
             <div
-              className="flex items-center gap-1 px-2.5 py-1 rounded bg-white/10 border border-white/15 text-xs font-mono font-bold text-white tracking-wide select-none"
-              title="Video quality automatically adjusts based on each device's internet connection speed"
+              className="hidden xs:flex items-center gap-1 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded bg-white/10 border border-white/15 text-[10px] sm:text-xs font-mono font-bold text-white tracking-wide select-none"
+              title="Adaptive HD Quality"
             >
-              <span className="material-symbols-outlined text-[15px] text-[#FF4D4D]">hd</span>
-              <span>Auto HD</span>
+              <span className="material-symbols-outlined text-[13px] sm:text-[15px] text-[#FF4D4D]">hd</span>
+              <span className="hidden sm:inline">Auto HD</span>
             </div>
 
-            <button onClick={handleToggleFullscreen} className="p-1.5 hover:text-white transition-colors text-slate-[#AAAAAA] hover:text-white cursor-pointer" title="Fullscreen">
-              <span className="material-symbols-outlined text-[24px]">{isFullscreen ? 'fullscreen_exit' : 'fullscreen'}</span>
+            <button onClick={handleToggleFullscreen} className="p-1 sm:p-1.5 hover:text-white transition-colors text-slate-[#AAAAAA] hover:text-white cursor-pointer" title="Fullscreen">
+              <span className="material-symbols-outlined text-[20px] sm:text-[24px]">{isFullscreen ? 'fullscreen_exit' : 'fullscreen'}</span>
             </button>
           </div>
         </div>

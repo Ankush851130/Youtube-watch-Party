@@ -84,42 +84,42 @@ export default function SidebarPanel({ onOpenShare, onOpenRoleModal }) {
   };
 
   return (
-    <aside className="lg:col-span-4 xl:col-span-4 flex flex-col bg-[#121212] border border-white/[0.08] rounded-2xl shadow-xl overflow-hidden min-h-[580px] max-h-[820px]">
+    <aside className="lg:col-span-4 xl:col-span-4 flex flex-col bg-[#121212] border border-white/[0.08] rounded-2xl shadow-xl overflow-hidden min-h-[440px] sm:min-h-[540px] max-h-[620px] lg:max-h-[820px]">
       {/* 3 Tabs Header: Up Next / People / Chat */}
-      <div className="flex items-center p-1.5 bg-[#0E0E0E]/90 border-b border-white/[0.08]">
+      <div className="flex items-center p-1 sm:p-1.5 bg-[#0E0E0E]/90 border-b border-white/[0.08]">
         <button 
           onClick={() => setActiveTab('recommendations')}
-          className={`flex-1 py-2 px-2 rounded-xl font-medium text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+          className={`flex-1 py-1.5 sm:py-2 px-1.5 sm:px-2 rounded-xl font-medium text-[11px] sm:text-xs flex items-center justify-center gap-1 sm:gap-1.5 transition-all cursor-pointer ${
             activeTab === 'recommendations' 
               ? 'bg-[#FF0000]/15 text-[#FF4D4D] border border-[#FF0000]/30 shadow-sm font-semibold' 
               : 'text-[#AAAAAA] hover:text-white'
           }`}
         >
-          <span className="material-symbols-outlined text-[16px]">play_circle</span>
+          <span className="material-symbols-outlined text-[15px] sm:text-[16px]">play_circle</span>
           <span>Up Next</span>
         </button>
 
         <button 
           onClick={() => setActiveTab('people')}
-          className={`flex-1 py-2 px-2 rounded-xl font-medium text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+          className={`flex-1 py-1.5 sm:py-2 px-1.5 sm:px-2 rounded-xl font-medium text-[11px] sm:text-xs flex items-center justify-center gap-1 sm:gap-1.5 transition-all cursor-pointer ${
             activeTab === 'people' 
               ? 'bg-white/[0.08] text-white shadow-sm font-semibold' 
               : 'text-[#AAAAAA] hover:text-white'
           }`}
         >
-          <span className="material-symbols-outlined text-[16px]">group</span>
+          <span className="material-symbols-outlined text-[15px] sm:text-[16px]">group</span>
           <span>People ({participants.length})</span>
         </button>
 
         <button 
           onClick={() => setActiveTab('chat')}
-          className={`flex-1 py-2 px-2 rounded-xl font-medium text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+          className={`flex-1 py-1.5 sm:py-2 px-1.5 sm:px-2 rounded-xl font-medium text-[11px] sm:text-xs flex items-center justify-center gap-1 sm:gap-1.5 transition-all cursor-pointer ${
             activeTab === 'chat' 
               ? 'bg-white/[0.08] text-white shadow-sm font-semibold' 
               : 'text-[#AAAAAA] hover:text-white'
           }`}
         >
-          <span className="material-symbols-outlined text-[16px]">chat_bubble</span>
+          <span className="material-symbols-outlined text-[15px] sm:text-[16px]">chat_bubble</span>
           <span>Chat</span>
         </button>
       </div>
@@ -149,9 +149,9 @@ export default function SidebarPanel({ onOpenShare, onOpenRoleModal }) {
                 <div 
                   key={item.videoId}
                   onClick={() => handlePlayRecommendation(item.videoId, item.title, item.channelTitle)}
-                  className="group flex items-start gap-3 p-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.07] border border-white/[0.05] hover:border-white/15 transition-all cursor-pointer"
+                  className="group flex items-start gap-2.5 sm:gap-3 p-2 sm:p-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.07] border border-white/[0.05] hover:border-white/15 transition-all cursor-pointer"
                 >
-                  <div className="relative w-28 aspect-video rounded-lg overflow-hidden bg-slate-800 shrink-0 border border-white/10 group-hover:scale-105 transition-transform">
+                  <div className="relative w-24 sm:w-28 aspect-video rounded-lg overflow-hidden bg-slate-800 shrink-0 border border-white/10 group-hover:scale-105 transition-transform">
                     <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover" />
                     <span className="absolute bottom-1 right-1 bg-black/85 text-white font-mono text-[9px] px-1 py-0.5 rounded font-semibold">
                       {item.duration}
@@ -309,9 +309,9 @@ export default function SidebarPanel({ onOpenShare, onOpenRoleModal }) {
 
       {/* TAB CONTENT 3: CHAT */}
       {activeTab === 'chat' && (
-        <div className="flex-1 flex flex-col p-4 justify-between h-[520px]">
+        <div className="flex-1 flex flex-col p-3 sm:p-4 justify-between h-[420px] sm:h-[520px]">
           {/* Messages Scroll Area */}
-          <div ref={chatScrollRef} className="flex-1 overflow-y-auto space-y-3.5 pr-1.5 flex flex-col">
+          <div ref={chatScrollRef} className="flex-1 overflow-y-auto space-y-3 sm:space-y-3.5 pr-1 sm:pr-1.5 flex flex-col">
             {messages.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-[#717171]">
                 <span className="material-symbols-outlined text-[32px] mb-2 opacity-50">forum</span>

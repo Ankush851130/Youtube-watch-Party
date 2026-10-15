@@ -27,10 +27,8 @@ export default function WatchPartyPage() {
   const [roleModalTarget, setRoleModalTarget] = useState(null);
   const [roleModalDefault, setRoleModalDefault] = useState('MODERATOR');
 
-  // Username & password prompt state if joining directly via link without pre-saved user
-  const [usernameInput, setUsernameInput] = useState(authUser?.username || user?.username || '');
+  // Mandatory auth requirement state
   const [passwordInput, setPasswordInput] = useState(user?.password || '');
-  const [isPromptingUsername, setIsPromptingUsername] = useState(!user?.username && !authUser?.username);
 
   useEffect(() => {
     if (!socket) return;
@@ -48,8 +46,10 @@ export default function WatchPartyPage() {
   }, [socket, leaveRoomSocket, navigate]);
 
   useEffect(() => {
-    const activeUsername = authUser?.username || user?.username;
-    let activeUserId = authUser?.userId || user?.userId;
+    if (!authUser?.username) return;
+
+    const activeUsername = authUser.username;
+    let activeUserId = authUser.userId;
 
     if (!activeUserId && roomCode) {
       try {
@@ -59,24 +59,9 @@ export default function WatchPartyPage() {
     }
 
     if (roomCode && activeUsername) {
-      joinRoomSocket(roomCode, activeUsername, activeUserId, user?.password || null);
-      setIsPromptingUsername(false);
-    } else if (!activeUsername) {
-      setIsPromptingUsername(true);
+      joinRoomSocket(roomCode, activeUsername, activeUserId, user?.password || passwordInput || null);
     }
-  }, [roomCode, authUser?.username, user?.username, user?.password]);
-
-  const handleJoinSubmit = (e) => {
-    e.preventDefault();
-    if (!usernameInput.trim()) return;
-
-    const trimmed = usernameInput.trim();
-    const newUser = { username: trimmed, role: 'PARTICIPANT', password: passwordInput.trim() || null };
-    setUser(newUser);
-    setIsPromptingUsername(false);
-
-    joinRoomSocket(roomCode, trimmed, null, passwordInput.trim() || null);
-  };
+  }, [roomCode, authUser?.username, authUser?.userId, user?.password, passwordInput]);
 
   const handleLeaveRoom = () => {
     leaveRoomSocket();
@@ -89,57 +74,42 @@ export default function WatchPartyPage() {
     setIsRoleModalOpen(true);
   };
 
-  if (isPromptingUsername) {
+  // If user is not authenticated, show mandatory Auth card
+  if (!authUser) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] text-white flex items-center justify-center p-4">
-        <div className="bg-[#121212] border border-white/10 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-5">
-          <div className="space-y-1 text-center">
-            <div className="w-12 h-12 rounded-xl bg-[#FF0000] mx-auto flex items-center justify-center text-white text-xl font-bold mb-3 shadow-lg shadow-[#FF0000]/30">
-              ▶
-            </div>
-            <h2 className="font-display text-xl font-bold text-white">Join Watch Party</h2>
-            <p className="text-xs text-[#AAAAAA]">Enter your name to join room <span className="font-mono text-[#FF8080] font-bold">{roomCode}</span></p>
+      <div className="min-h-screen bg-[#0A0A0A] text-white flex flex-col items-center justify-center p-4 selection:bg-[#FF0000]/30">
+        <div className="bg-[#121212] border border-white/10 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-5 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#FF0000] to-[#FF4D4D] mx-auto flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-[#FF0000]/30">
+            🎬
           </div>
 
-          <form onSubmit={handleJoinSubmit} className="space-y-4">
-            <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1.5">Your Name</label>
-              <input 
-                type="text" 
-                value={usernameInput}
-                onChange={(e) => setUsernameInput(e.target.value)}
-                placeholder="e.g., Aman"
-                className="w-full bg-[#181818] border border-white/10 focus:border-[#FF0000] focus:ring-1 focus:ring-[#FF0000] rounded-xl px-4 py-3 text-sm text-white placeholder:text-[#666] outline-none"
-                autoFocus
-              />
-            </div>
+          <div className="space-y-1.5">
+            <h2 className="font-display text-2xl font-extrabold text-white tracking-tight">
+              Authentication Required
+            </h2>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              To join watch party <span className="font-mono text-[#FF8080] font-bold px-2 py-0.5 bg-[#FF0000]/10 rounded border border-[#FF0000]/20">{roomCode}</span>, you must sign in first. If you don't have an account, register first.
+            </p>
+          </div>
 
-            <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1.5">Room Password <span className="text-[11px] font-normal text-[#AAAAAA]">(Only if room is private)</span></label>
-              <input 
-                type="password" 
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                placeholder="Password (if private)"
-                className="w-full bg-[#181818] border border-white/10 focus:border-[#FF0000] focus:ring-1 focus:ring-[#FF0000] rounded-xl px-4 py-3 text-sm text-white placeholder:text-[#666] outline-none"
-              />
-            </div>
+          <div className="bg-[#FF0000]/10 border border-[#FF0000]/30 text-[#FF8080] text-xs px-4 py-3 rounded-xl flex items-center justify-center gap-2">
+            <span>🔒</span>
+            <span className="font-medium">Mandatory Sign-In Policy Enforced</span>
+          </div>
 
-            <button 
-              type="submit"
-              className="w-full h-11 rounded-xl bg-[#FF0000] hover:bg-[#CC0000] text-white font-bold text-sm shadow-lg shadow-[#FF0000]/30 transition-all cursor-pointer"
-            >
-              Enter Room
-            </button>
-          </form>
-
-          <div className="pt-2 text-center border-t border-white/10">
+          <div className="space-y-2.5 pt-1">
             <button
-              type="button"
               onClick={() => setIsAuthModalOpen(true)}
-              className="text-xs text-[#FF8080] hover:underline font-semibold cursor-pointer"
+              className="w-full h-12 rounded-xl bg-[#FF0000] hover:bg-[#CC0000] text-white font-bold text-sm shadow-lg shadow-[#FF0000]/30 transition-all cursor-pointer flex items-center justify-center gap-2"
             >
-              🔐 Have an account? Sign In / Register first
+              <span>🔑 Sign In / Register to Join Party</span>
+            </button>
+
+            <button
+              onClick={() => navigate('/')}
+              className="w-full h-10 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-semibold text-xs transition-all cursor-pointer"
+            >
+              Back to Landing Page
             </button>
           </div>
         </div>
@@ -147,6 +117,7 @@ export default function WatchPartyPage() {
         <AuthModal 
           isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
+          notice={`Please sign in or register to join watch party ${roomCode}`}
         />
       </div>
     );
@@ -167,10 +138,10 @@ export default function WatchPartyPage() {
       />
 
       {/* Main Digital Theater Stage */}
-      <main className="flex-1 w-full max-w-[1780px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <main className="flex-1 w-full max-w-[1780px] mx-auto px-2 sm:px-6 lg:px-8 py-3 sm:py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
           {/* Hero Video Player Section */}
-          <section className="lg:col-span-8 xl:col-span-8 flex flex-col gap-5 min-w-0">
+          <section className="lg:col-span-8 xl:col-span-8 flex flex-col gap-3.5 sm:gap-5 min-w-0">
             <YouTubePlayer 
               videoId={currentVideoId}
               isPlaying={isPlaying}

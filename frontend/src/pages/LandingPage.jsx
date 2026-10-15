@@ -12,15 +12,15 @@ export default function LandingPage() {
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState('login');
+  const [authNotice, setAuthNotice] = useState('');
+  const [pendingAction, setPendingAction] = useState(null);
 
   const [activeTab, setActiveTab] = useState('create'); // 'create' | 'join'
   const [createRoomName, setCreateRoomName] = useState('');
-  const [createUsername, setCreateUsername] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
   const [roomPassword, setRoomPassword] = useState('');
   
   const [joinCodeInput, setJoinCodeInput] = useState('');
-  const [joinUsername, setJoinUsername] = useState('');
   const [joinPassword, setJoinPassword] = useState('');
   
   const [activeRooms, setActiveRooms] = useState([]);
@@ -33,13 +33,6 @@ export default function LandingPage() {
     fetchRooms();
   }, []);
 
-  useEffect(() => {
-    if (authUser?.username) {
-      setCreateUsername(authUser.username);
-      setJoinUsername(authUser.username);
-    }
-  }, [authUser]);
-
   const fetchRooms = async () => {
     try {
       const res = await listRoomsApi();
@@ -51,31 +44,19 @@ export default function LandingPage() {
     }
   };
 
-  const handleCreateRoom = async (e) => {
-    e.preventDefault();
-    if (!createUsername.trim()) {
-      setErrorMsg('Please enter your name.');
-      return;
-    }
-
-    if (isPrivate && !roomPassword.trim()) {
-      setErrorMsg('Please set a password for your private room.');
-      return;
-    }
-
+  const executeCreateRoom = async (roomName, isPriv, pass, hostId, username) => {
     setErrorMsg('');
     setIsSubmitting(true);
     try {
-      const activeHostUserId = authUser?.userId || null;
       const res = await createRoomApi(
-        createRoomName.trim() || 'Watch Party', 
-        createUsername.trim(),
-        isPrivate,
-        roomPassword.trim(),
-        activeHostUserId
+        roomName || 'Watch Party', 
+        username,
+        isPriv,
+        pass,
+        hostId
       );
       if (res.success && res.data) {
-        const actualHostId = res.data.hostId || res.data.userId;
+        const actualHostId = res.data.hostId || res.data.userId || hostId;
         try {
           if (res.data.roomCode && actualHostId) {
             localStorage.setItem(`watchparty_host_${res.data.roomCode.toUpperCase()}`, actualHostId);
@@ -84,9 +65,9 @@ export default function LandingPage() {
 
         setUser({
           userId: actualHostId,
-          username: createUsername.trim(),
+          username: username,
           role: 'HOST',
-          password: roomPassword.trim()
+          password: pass
         });
         navigate(`/room/${res.data.roomCode}`);
       }
@@ -98,32 +79,118 @@ export default function LandingPage() {
     }
   };
 
+  const handleCreateRoom = async (e) => {
+    e.preventDefault();
+
+    // Mandatory Sign In Check
+    if (!authUser) {
+      setPendingAction({
+        type: 'create',
+        data: {
+          roomName: createRoomName.trim(),
+          isPrivate,
+          roomPassword: roomPassword.trim()
+        }
+      });
+      setAuthNotice('Mandatory Sign In: Please sign in or register an account first to create a Watch Party.');
+      setAuthModalTab('login');
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    if (isPrivate && !roomPassword.trim()) {
+      setErrorMsg('Please set a password for your private room.');
+      return;
+    }
+
+    await executeCreateRoom(
+      createRoomName.trim(),
+      isPrivate,
+      roomPassword.trim(),
+      authUser.userId,
+      authUser.username
+    );
+  };
+
+  const executeJoinRoom = (code, pass, username) => {
+    let cleanCode = code.trim();
+    if (cleanCode.includes('/room/')) {
+      cleanCode = cleanCode.split('/room/')[1].split('/')[0].split('?')[0];
+    }
+
+    setUser({
+      username: username,
+      role: 'PARTICIPANT',
+      password: pass || null
+    });
+
+    navigate(`/room/${cleanCode.toUpperCase()}`);
+  };
+
   const handleJoinRoom = (e) => {
     e.preventDefault();
     if (!joinCodeInput.trim()) {
       setErrorMsg('Please enter a 6-digit Room Code or Room Link.');
       return;
     }
-    if (!joinUsername.trim()) {
-      setErrorMsg('Please enter your name.');
+
+    // Mandatory Sign In Check
+    if (!authUser) {
+      setPendingAction({
+        type: 'join',
+        data: {
+          code: joinCodeInput.trim(),
+          password: joinPassword.trim()
+        }
+      });
+      setAuthNotice('Mandatory Sign In: Please sign in or register an account first to join a Watch Party.');
+      setAuthModalTab('login');
+      setIsAuthModalOpen(true);
       return;
     }
 
     setErrorMsg('');
+    executeJoinRoom(joinCodeInput.trim(), joinPassword.trim(), authUser.username);
+  };
 
-    // Extract room code if full URL was pasted
-    let cleanCode = joinCodeInput.trim();
-    if (cleanCode.includes('/room/')) {
-      cleanCode = cleanCode.split('/room/')[1].split('/')[0].split('?')[0];
+  const handleCardJoin = (r) => {
+    if (!authUser) {
+      setPendingAction({
+        type: 'join',
+        data: {
+          code: r.roomCode,
+          password: ''
+        }
+      });
+      setAuthNotice(`Mandatory Sign In: Please sign in or register an account first to join party "${r.roomName}".`);
+      setAuthModalTab('login');
+      setIsAuthModalOpen(true);
+      return;
     }
 
-    setUser({
-      username: joinUsername.trim(),
-      role: 'PARTICIPANT',
-      password: joinPassword.trim() || null
-    });
+    executeJoinRoom(r.roomCode, '', authUser.username);
+  };
 
-    navigate(`/room/${cleanCode.toUpperCase()}`);
+  const handleAuthSuccess = (loggedInUser) => {
+    setIsAuthModalOpen(false);
+    setAuthNotice('');
+    const currentUser = loggedInUser || authUser;
+
+    if (pendingAction && currentUser) {
+      const action = pendingAction;
+      setPendingAction(null);
+      if (action.type === 'create') {
+        executeCreateRoom(
+          action.data.roomName,
+          action.data.isPrivate,
+          action.data.roomPassword,
+          currentUser.userId,
+          currentUser.username
+        );
+      } else if (action.type === 'join') {
+        executeJoinRoom(action.data.code, action.data.password, currentUser.username);
+      }
+    }
   };
 
   return (
@@ -161,20 +228,20 @@ export default function LandingPage() {
 
       {/* Top Navbar */}
       <header className="relative z-10 w-full bg-[#0E0E0E]/90 border-b border-white/[0.08] backdrop-blur-md">
-        <div className="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#FF0000] flex items-center justify-center text-white font-extrabold shadow-lg shadow-[#FF0000]/30 text-sm">
+        <div className="max-w-[1400px] mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#FF0000] flex items-center justify-center text-white font-extrabold shadow-lg shadow-[#FF0000]/30 text-xs sm:text-sm">
               ▶
             </div>
-            <span className="font-display font-extrabold tracking-tight text-lg text-white flex items-center gap-2">
-              WATCHTOGETHER <span className="text-xs font-mono font-medium text-[#FF4D4D] px-1.5 py-0.5 rounded bg-[#FF0000]/10 border border-[#FF0000]/20">Party Cinema</span>
+            <span className="font-display font-extrabold tracking-tight text-base sm:text-lg text-white flex items-center gap-1.5 sm:gap-2">
+              WATCHTOGETHER <span className="text-[10px] sm:text-xs font-mono font-medium text-[#FF4D4D] px-1.5 py-0.5 rounded bg-[#FF0000]/10 border border-[#FF0000]/20 hidden xs:inline">Cinema</span>
             </span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Party Ambient Lights Toggle Button */}
             <button
               onClick={() => setPartyLightsOn(!partyLightsOn)}
-              className={`text-xs font-semibold px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer hidden sm:flex ${
+              className={`text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer hidden sm:flex ${
                 partyLightsOn 
                   ? 'bg-gradient-to-r from-[#FF0000]/20 via-[#9333EA]/20 to-[#06B6D4]/20 border-[#FF0000]/40 text-white shadow-md shadow-[#FF0000]/20' 
                   : 'bg-white/[0.04] border-white/10 text-slate-400 hover:text-white'
@@ -193,15 +260,15 @@ export default function LandingPage() {
             </a>
 
             {authUser ? (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl">
+              <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-white/5 border border-white/10 rounded-xl">
                 {authUser.avatar ? (
-                  <img src={authUser.avatar} alt={authUser.username} className="w-6 h-6 rounded-full object-cover" />
+                  <img src={authUser.avatar} alt={authUser.username} className="w-5 h-5 sm:w-6 sm:h-6 rounded-full object-cover" />
                 ) : (
-                  <div className="w-6 h-6 rounded-full bg-[#FF0000] text-white flex items-center justify-center font-bold text-xs">
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#FF0000] text-white flex items-center justify-center font-bold text-xs">
                     {authUser.username.charAt(0)}
                   </div>
                 )}
-                <span className="text-xs font-semibold text-white">{authUser.username}</span>
+                <span className="text-xs font-semibold text-white max-w-[80px] xs:max-w-[120px] truncate">{authUser.username}</span>
                 <button
                   onClick={logout}
                   className="text-[11px] text-red-400 hover:text-red-300 ml-1 font-medium cursor-pointer"
@@ -210,18 +277,18 @@ export default function LandingPage() {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <button
                   onClick={() => { setAuthModalTab('login'); setIsAuthModalOpen(true); }}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-xl text-slate-200 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+                  className="text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-xl text-slate-200 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
                 >
                   Sign In
                 </button>
                 <button
                   onClick={() => { setAuthModalTab('register'); setIsAuthModalOpen(true); }}
-                  className="text-xs font-semibold px-3.5 py-1.5 rounded-xl bg-[#FF0000] hover:bg-[#CC0000] text-white shadow-md shadow-[#FF0000]/20 transition-all cursor-pointer"
+                  className="text-xs font-semibold px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-[#FF0000] hover:bg-[#CC0000] text-white shadow-md shadow-[#FF0000]/20 transition-all cursor-pointer"
                 >
-                  Create Account
+                  Register
                 </button>
               </div>
             )}
@@ -230,40 +297,40 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <main className="relative z-10 flex-1 max-w-[1400px] mx-auto px-6 py-12 flex flex-col items-center justify-center text-center">
+      <main className="relative z-10 flex-1 max-w-[1400px] mx-auto px-4 sm:px-6 py-8 sm:py-12 flex flex-col items-center justify-center text-center">
 
         {/* Hero Party Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#FF0000]/20 via-[#9333EA]/20 to-[#06B6D4]/20 border border-[#FF0000]/30 text-white text-xs font-semibold tracking-wide mb-6 shadow-xl backdrop-blur-md">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#FF0000] animate-ping"></span>
+        <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-gradient-to-r from-[#FF0000]/20 via-[#9333EA]/20 to-[#06B6D4]/20 border border-[#FF0000]/30 text-white text-[11px] sm:text-xs font-semibold tracking-wide mb-4 sm:mb-6 shadow-xl backdrop-blur-md">
+          <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-[#FF0000] animate-ping"></span>
           <span>🎉 Live YouTube Watch Party Theater</span>
         </div>
 
-        <h1 className="font-display text-4xl sm:text-6xl font-extrabold tracking-tight text-white max-w-4xl leading-tight">
+        <h1 className="font-display text-2xl xs:text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white max-w-4xl leading-tight">
           Watch YouTube together, <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF0000] via-[#EC4899] to-[#9333EA] drop-shadow-[0_0_35px_rgba(255,0,0,0.4)]">
             in perfect real-time sync.
           </span>
         </h1>
 
-        <p className="mt-4 text-slate-300 text-base sm:text-lg max-w-2xl font-normal drop-shadow">
+        <p className="mt-3 sm:mt-4 text-slate-300 text-xs sm:text-base md:text-lg max-w-2xl font-normal drop-shadow px-2">
           Create a virtual theater party, invite friends with a single passcode, and watch YouTube videos in frame-by-frame synchronization.
         </p>
 
         {/* Action Card Box */}
-        <div className="mt-10 w-full max-w-lg bg-[#121212] border border-white/10 rounded-2xl p-6 shadow-2xl backdrop-blur-xl text-left">
+        <div className="mt-6 sm:mt-10 w-full max-w-lg bg-[#121212] border border-white/10 rounded-2xl p-4 sm:p-6 shadow-2xl backdrop-blur-xl text-left">
           {/* Tabs */}
-          <div className="flex items-center p-1 bg-[#0E0E0E] rounded-xl border border-white/[0.08] mb-6">
+          <div className="flex items-center p-1 bg-[#0E0E0E] rounded-xl border border-white/[0.08] mb-5 sm:mb-6">
             <button
               onClick={() => { setActiveTab('create'); setErrorMsg(''); }}
-              className={`flex-1 py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all cursor-pointer ${
+              className={`flex-1 py-2 sm:py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all cursor-pointer ${
                 activeTab === 'create' ? 'bg-[#FF0000] text-white shadow-md' : 'text-[#AAAAAA] hover:text-white'
               }`}
             >
-              Create Watch Party
+              Create Party
             </button>
             <button
               onClick={() => { setActiveTab('join'); setErrorMsg(''); }}
-              className={`flex-1 py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all cursor-pointer ${
+              className={`flex-1 py-2 sm:py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all cursor-pointer ${
                 activeTab === 'join' ? 'bg-[#FF0000] text-white shadow-md' : 'text-[#AAAAAA] hover:text-white'
               }`}
             >
@@ -291,15 +358,32 @@ export default function LandingPage() {
                 />
               </div>
 
+              {/* Host Account Identity */}
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1.5">Your Name (Host)</label>
-                <input 
-                  type="text" 
-                  value={createUsername}
-                  onChange={(e) => setCreateUsername(e.target.value)}
-                  placeholder="e.g., Ankush"
-                  className="w-full bg-[#181818] border border-white/10 focus:border-[#FF0000] focus:ring-1 focus:ring-[#FF0000] rounded-xl px-4 py-3 text-sm text-white placeholder:text-[#666] outline-none"
-                />
+                <label className="text-xs font-semibold text-slate-300 block mb-1.5">Host Account</label>
+                {authUser ? (
+                  <div className="flex items-center gap-3 px-4 py-2.5 bg-[#181818] border border-white/10 rounded-xl">
+                    {authUser.avatar ? (
+                      <img src={authUser.avatar} alt={authUser.username} className="w-7 h-7 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-[#FF0000] text-white flex items-center justify-center font-bold text-xs">
+                        {authUser.username.charAt(0)}
+                      </div>
+                    )}
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-white">{authUser.username}</span>
+                      <span className="text-[10px] text-slate-400">{authUser.email}</span>
+                    </div>
+                    <span className="ml-auto text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                      Signed In
+                    </span>
+                  </div>
+                ) : (
+                  <div className="bg-[#FF0000]/10 border border-[#FF0000]/30 rounded-xl p-3 text-xs text-[#FF8080] flex items-center gap-2">
+                    <span>🔒</span>
+                    <span>Sign in or register mandatory before creating a Watch Party.</span>
+                  </div>
+                )}
               </div>
 
               {/* Room Privacy Toggle */}
@@ -353,7 +437,7 @@ export default function LandingPage() {
                 className="w-full h-12 rounded-xl bg-[#FF0000] hover:bg-[#CC0000] text-white font-bold text-sm shadow-lg shadow-[#FF0000]/30 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 <span className="material-symbols-outlined text-[20px]">add_circle</span>
-                <span>{isSubmitting ? 'Creating Room...' : 'Create Watch Party'}</span>
+                <span>{isSubmitting ? 'Creating Room...' : (authUser ? 'Create Watch Party' : 'Sign In & Create Watch Party')}</span>
               </button>
             </form>
           ) : (
@@ -369,15 +453,32 @@ export default function LandingPage() {
                 />
               </div>
 
+              {/* Account Identity */}
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1.5">Your Display Name</label>
-                <input 
-                  type="text" 
-                  value={joinUsername}
-                  onChange={(e) => setJoinUsername(e.target.value)}
-                  placeholder="e.g., Rahul"
-                  className="w-full bg-[#181818] border border-white/10 focus:border-[#FF0000] focus:ring-1 focus:ring-[#FF0000] rounded-xl px-4 py-3 text-sm text-white placeholder:text-[#666] outline-none"
-                />
+                <label className="text-xs font-semibold text-slate-300 block mb-1.5">Your Account</label>
+                {authUser ? (
+                  <div className="flex items-center gap-3 px-4 py-2.5 bg-[#181818] border border-white/10 rounded-xl">
+                    {authUser.avatar ? (
+                      <img src={authUser.avatar} alt={authUser.username} className="w-7 h-7 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-[#FF0000] text-white flex items-center justify-center font-bold text-xs">
+                        {authUser.username.charAt(0)}
+                      </div>
+                    )}
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-white">{authUser.username}</span>
+                      <span className="text-[10px] text-slate-400">{authUser.email}</span>
+                    </div>
+                    <span className="ml-auto text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                      Signed In
+                    </span>
+                  </div>
+                ) : (
+                  <div className="bg-[#FF0000]/10 border border-[#FF0000]/30 rounded-xl p-3 text-xs text-[#FF8080] flex items-center gap-2">
+                    <span>🔒</span>
+                    <span>Sign in or register mandatory before joining a Watch Party.</span>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -396,7 +497,7 @@ export default function LandingPage() {
                 className="w-full h-12 rounded-xl bg-[#FF0000] hover:bg-[#CC0000] text-white font-bold text-sm shadow-lg shadow-[#FF0000]/30 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[20px]">login</span>
-                <span>Join Watch Party</span>
+                <span>{authUser ? 'Join Watch Party' : 'Sign In & Join Watch Party'}</span>
               </button>
             </form>
           )}
@@ -426,10 +527,7 @@ export default function LandingPage() {
                 return (
                   <div 
                     key={r.roomId}
-                    onClick={() => {
-                      setJoinCodeInput(r.roomCode);
-                      setActiveTab('join');
-                    }}
+                    onClick={() => handleCardJoin(r)}
                     className="relative bg-[#121212]/90 hover:bg-[#161616] border border-white/10 hover:border-[#FF0000]/60 rounded-2xl overflow-hidden shadow-xl hover:shadow-[0_0_35px_rgba(255,0,0,0.35)] transition-all duration-300 group cursor-pointer hover:-translate-y-1.5 flex flex-col select-none"
                   >
                     {/* Animated Party Header Banner */}
@@ -549,8 +647,10 @@ export default function LandingPage() {
       {/* Auth Modal */}
       <AuthModal
         isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
+        onClose={() => { setIsAuthModalOpen(false); setAuthNotice(''); setPendingAction(null); }}
         initialTab={authModalTab}
+        notice={authNotice}
+        onSuccess={handleAuthSuccess}
       />
     </div>
   );
