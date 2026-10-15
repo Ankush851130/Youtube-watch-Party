@@ -2,11 +2,57 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useSocket } from '../context/SocketContext';
 import { getRecommendationsApi } from '../services/api';
 
-export default function SidebarPanel({ onOpenShare, onOpenRoleModal }) {
+export default function SidebarPanel({ 
+  onOpenShare, 
+  onOpenRoleModal,
+  activeTab: controlledActiveTab,
+  onTabChange,
+  unreadCount: controlledUnreadCount
+}) {
   const { room, user, assignRoleSocket, transferHostSocket, removeParticipantSocket, messages, sendMessageSocket, changeVideoSocket, addToast } = useSocket();
-  const [activeTab, setActiveTab] = useState('recommendations'); // 'recommendations' | 'people' | 'chat'
+  const [internalActiveTab, setInternalActiveTab] = useState('recommendations'); // 'recommendations' | 'people' | 'chat'
+  const [internalUnreadCount, setInternalUnreadCount] = useState(0);
   const [chatInputText, setChatInputText] = useState('');
   const [openUserDropdown, setOpenUserDropdown] = useState(null);
+
+  const activeTab = controlledActiveTab !== undefined ? controlledActiveTab : internalActiveTab;
+  const setActiveTab = onTabChange || setInternalActiveTab;
+
+  const currentUserId = user?.userId;
+  const prevMessagesLengthRef = useRef(messages?.length || 0);
+  const activeTabRef = useRef(activeTab);
+
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+    if (activeTab === 'chat') {
+      setInternalUnreadCount(0);
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    const prevLen = prevMessagesLengthRef.current;
+    const currentLen = messages?.length || 0;
+    prevMessagesLengthRef.current = currentLen;
+
+    if (currentLen > prevLen) {
+      if (activeTabRef.current !== 'chat') {
+        const newMsgs = messages.slice(prevLen);
+        const unreadFromOthers = newMsgs.filter(m => m.userId !== currentUserId).length;
+        if (unreadFromOthers > 0) {
+          setInternalUnreadCount(prev => prev + unreadFromOthers);
+        }
+      }
+    }
+  }, [messages, currentUserId]);
+
+  const unreadCount = controlledUnreadCount !== undefined ? controlledUnreadCount : internalUnreadCount;
+
+  const handleTabChange = (newTab) => {
+    setActiveTab(newTab);
+    if (newTab === 'chat') {
+      setInternalUnreadCount(0);
+    }
+  };
 
   // Recommendations state
   const [recommendations, setRecommendations] = useState([]);
@@ -18,7 +64,6 @@ export default function SidebarPanel({ onOpenShare, onOpenRoleModal }) {
   const participants = Array.from(
     new Map((Array.isArray(rawParticipants) ? rawParticipants : []).map(p => [p.userId || p.username, p])).values()
   );
-  const currentUserId = user?.userId;
   const isHost = user?.role === 'HOST';
   const currentVideoId = room?.videoId || room?.currentVideoId || 'jfKfPfyJRdk';
 
@@ -88,7 +133,7 @@ export default function SidebarPanel({ onOpenShare, onOpenRoleModal }) {
       {/* 3 Tabs Header: Up Next / People / Chat */}
       <div className="flex items-center p-1 sm:p-1.5 bg-[#0E0E0E]/90 border-b border-white/[0.08]">
         <button 
-          onClick={() => setActiveTab('recommendations')}
+          onClick={() => handleTabChange('recommendations')}
           className={`flex-1 py-1.5 sm:py-2 px-1.5 sm:px-2 rounded-xl font-medium text-[11px] sm:text-xs flex items-center justify-center gap-1 sm:gap-1.5 transition-all cursor-pointer ${
             activeTab === 'recommendations' 
               ? 'bg-[#FF0000]/15 text-[#FF4D4D] border border-[#FF0000]/30 shadow-sm font-semibold' 
@@ -100,7 +145,7 @@ export default function SidebarPanel({ onOpenShare, onOpenRoleModal }) {
         </button>
 
         <button 
-          onClick={() => setActiveTab('people')}
+          onClick={() => handleTabChange('people')}
           className={`flex-1 py-1.5 sm:py-2 px-1.5 sm:px-2 rounded-xl font-medium text-[11px] sm:text-xs flex items-center justify-center gap-1 sm:gap-1.5 transition-all cursor-pointer ${
             activeTab === 'people' 
               ? 'bg-white/[0.08] text-white shadow-sm font-semibold' 
@@ -112,15 +157,32 @@ export default function SidebarPanel({ onOpenShare, onOpenRoleModal }) {
         </button>
 
         <button 
-          onClick={() => setActiveTab('chat')}
-          className={`flex-1 py-1.5 sm:py-2 px-1.5 sm:px-2 rounded-xl font-medium text-[11px] sm:text-xs flex items-center justify-center gap-1 sm:gap-1.5 transition-all cursor-pointer ${
+          id="sidebar-chat-tab-btn"
+          onClick={() => handleTabChange('chat')}
+          className={`relative flex-1 py-1.5 sm:py-2 px-1.5 sm:px-2 rounded-xl font-medium text-[11px] sm:text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
             activeTab === 'chat' 
               ? 'bg-white/[0.08] text-white shadow-sm font-semibold' 
               : 'text-[#AAAAAA] hover:text-white'
           }`}
         >
-          <span className="material-symbols-outlined text-[15px] sm:text-[16px]">chat_bubble</span>
+          <div className="relative inline-flex items-center justify-center">
+            <span className={`material-symbols-outlined text-[15px] sm:text-[16px] transition-colors ${
+              unreadCount > 0 && activeTab !== 'chat' ? 'text-[#FF4D4D]' : ''
+            }`}>
+              chat_bubble
+            </span>
+            {unreadCount > 0 && activeTab !== 'chat' && (
+              <span className="absolute -top-1.5 -right-2 min-w-[15px] h-[15px] px-1 rounded-full bg-[#FF0000] text-white text-[9px] font-mono font-extrabold flex items-center justify-center shadow-md shadow-[#FF0000]/70 ring-2 ring-[#0E0E0E] animate-pulse leading-none">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </div>
           <span>Chat</span>
+          {unreadCount > 0 && activeTab !== 'chat' && (
+            <span className="ml-0.5 px-1.5 py-0.2 rounded-full bg-[#FF0000]/20 text-[#FF4D4D] text-[10px] font-mono font-bold border border-[#FF0000]/30 hidden xs:inline-flex items-center justify-center leading-none">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
         </button>
       </div>
 

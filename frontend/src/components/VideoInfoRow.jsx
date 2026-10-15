@@ -5,6 +5,8 @@ export default function VideoInfoRow({
   onOpenSearch, 
   onOpenPasteUrl, 
   onOpenShare, 
+  onOpenChat,
+  unreadCount = 0,
   onLeaveRoom 
 }) {
   const { room, user, sendEmojiSocket, addToast } = useSocket();
@@ -112,6 +114,33 @@ export default function VideoInfoRow({
             <span className="material-symbols-outlined text-[16px] sm:text-[18px] text-[#FF4D4D]">ios_share</span>
             <span>Share</span>
           </button>
+
+          {onOpenChat && (
+            <button 
+              onClick={onOpenChat}
+              className={`h-9 sm:h-11 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 rounded-xl border transition-all cursor-pointer ${
+                unreadCount > 0 
+                  ? 'bg-[#FF0000]/15 border-[#FF0000]/40 text-white shadow-[0_0_15px_rgba(255,0,0,0.3)] animate-pulse' 
+                  : 'bg-[#181818] hover:bg-[#202020] border-white/10 text-slate-100 hover:text-white'
+              }`}
+              title="Open Chat"
+            >
+              <div className="relative inline-flex items-center justify-center">
+                <span className="material-symbols-outlined text-[16px] sm:text-[18px] text-[#FF4D4D]">chat_bubble</span>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1.5 -right-2 min-w-[15px] h-[15px] px-1 rounded-full bg-[#FF0000] text-white text-[9px] font-mono font-extrabold flex items-center justify-center shadow-md shadow-[#FF0000]/60 ring-1 ring-black leading-none">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </div>
+              <span className="font-medium text-xs sm:text-sm">Chat</span>
+              {unreadCount > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-[#FF0000] text-white text-[10px] font-mono font-bold shadow-sm leading-none">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </button>
+          )}
 
           <button 
             onClick={onLeaveRoom}

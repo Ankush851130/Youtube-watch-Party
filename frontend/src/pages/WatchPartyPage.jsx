@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
@@ -16,7 +16,7 @@ import ToastContainer from '../components/ToastContainer';
 export default function WatchPartyPage() {
   const { roomCode } = useParams();
   const navigate = useNavigate();
-  const { socket, room, user, setUser, joinRoomSocket, leaveRoomSocket } = useSocket();
+  const { socket, room, user, setUser, joinRoomSocket, leaveRoomSocket, messages } = useSocket();
   const { user: authUser } = useAuth();
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -26,6 +26,44 @@ export default function WatchPartyPage() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [roleModalTarget, setRoleModalTarget] = useState(null);
   const [roleModalDefault, setRoleModalDefault] = useState('MODERATOR');
+
+  // Sidebar Tab & Unread Messages Notification State
+  const [sidebarTab, setSidebarTab] = useState('recommendations');
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const prevMessagesLengthRef = useRef(messages?.length || 0);
+  const sidebarTabRef = useRef(sidebarTab);
+
+  useEffect(() => {
+    sidebarTabRef.current = sidebarTab;
+    if (sidebarTab === 'chat') {
+      setUnreadMessagesCount(0);
+    }
+  }, [sidebarTab]);
+
+  useEffect(() => {
+    const prevLen = prevMessagesLengthRef.current;
+    const currentLen = messages?.length || 0;
+    prevMessagesLengthRef.current = currentLen;
+
+    if (currentLen > prevLen) {
+      if (sidebarTabRef.current !== 'chat') {
+        const newMsgs = messages.slice(prevLen);
+        const unreadFromOthers = newMsgs.filter(m => m.userId !== user?.userId).length;
+        if (unreadFromOthers > 0) {
+          setUnreadMessagesCount(prev => prev + unreadFromOthers);
+        }
+      }
+    }
+  }, [messages, user?.userId]);
+
+  const handleOpenChatTab = () => {
+    setSidebarTab('chat');
+    setUnreadMessagesCount(0);
+    const sidebarEl = document.getElementById('sidebar-panel-container');
+    if (sidebarEl) {
+      sidebarEl.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   // Mandatory auth requirement state
   const [passwordInput, setPasswordInput] = useState(user?.password || '');
@@ -155,14 +193,22 @@ export default function WatchPartyPage() {
                 onOpenSearch={() => setIsSearchOpen(true)}
                 onOpenPasteUrl={() => setIsPasteUrlOpen(true)}
                 onOpenShare={() => setIsShareOpen(true)}
+                onOpenChat={handleOpenChatTab}
+                unreadCount={unreadMessagesCount}
                 onLeaveRoom={handleLeaveRoom}
               />
             </div>
           </section>
 
           {/* Secondary Sidebar: People & Chat */}
-          <div className="px-3 sm:px-0 lg:col-span-4 xl:col-span-4">
+          <div id="sidebar-panel-container" className="px-3 sm:px-0 lg:col-span-4 xl:col-span-4">
             <SidebarPanel 
+              activeTab={sidebarTab}
+              onTabChange={(tab) => {
+                setSidebarTab(tab);
+                if (tab === 'chat') setUnreadMessagesCount(0);
+              }}
+              unreadCount={unreadMessagesCount}
               onOpenShare={() => setIsShareOpen(true)}
               onOpenRoleModal={handleOpenRoleModal}
             />
