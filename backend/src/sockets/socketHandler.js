@@ -299,7 +299,131 @@ export function setupSocketHandlers(io) {
       });
     });
 
-    // ================= 11. LEAVE ROOM (Explicit) =================
+    // ================= 12. AUDIO DUCKING & MIC PERMISSIONS =================
+    // Participant requests to speak
+    socket.on('request_mic', () => {
+      const result = roomManager.requestMic(socket.id);
+      if (result.error) {
+        socket.emit('action_error', { message: result.error, action: 'request_mic' });
+        return;
+      }
+
+      if (result.alreadyAllowed) {
+        socket.emit('mic_granted_self', { message: 'You have speaking privileges.' });
+        return;
+      }
+
+      io.to(result.room.roomId).emit('mic_requested', {
+        userId: result.participant.userId,
+        username: result.participant.username,
+        participants: result.participants,
+        message: `✋ ${result.participant.username} requested permission to speak.`
+      });
+    });
+
+    // Cancel mic request
+    socket.on('cancel_mic_request', () => {
+      const result = roomManager.cancelMicRequest(socket.id);
+      if (result && result.room) {
+        io.to(result.room.roomId).emit('mic_request_cancelled', {
+          userId: result.participant.userId,
+          username: result.participant.username,
+          participants: result.participants
+        });
+      }
+    });
+
+    // Host or Moderator grants speaking permission
+    socket.on('grant_mic', (payload) => {
+      const { targetUserId } = payload || {};
+      const result = roomManager.grantMic(socket.id, targetUserId);
+
+      if (result.error) {
+        socket.emit('action_error', { message: result.error, action: 'grant_mic' });
+        return;
+      }
+
+      if (result.targetSocketId) {
+        io.to(result.targetSocketId).emit('mic_granted_self', {
+          message: `🎙️ Your speaking request was approved by ${result.grantedBy}! You can now unmute.`
+        });
+      }
+
+      io.to(result.room.roomId).emit('mic_granted', {
+        targetUserId: result.targetUserId,
+        targetUsername: result.targetUsername,
+        grantedBy: result.grantedBy,
+        participants: result.participants,
+        message: `🎙️ ${result.targetUsername} is now permitted to speak.`
+      });
+    });
+
+    // Host or Moderator revokes speaking permission
+    socket.on('revoke_mic', (payload) => {
+      const { targetUserId } = payload || {};
+      const result = roomManager.revokeMic(socket.id, targetUserId);
+
+      if (result.error) {
+        socket.emit('action_error', { message: result.error, action: 'revoke_mic' });
+        return;
+      }
+
+      if (result.targetSocketId) {
+        io.to(result.targetSocketId).emit('mic_revoked_self', {
+          message: `🔇 Speaking permission was revoked by ${result.revokedBy}.`
+        });
+      }
+
+      io.to(result.room.roomId).emit('mic_revoked', {
+        targetUserId: result.targetUserId,
+        targetUsername: result.targetUsername,
+        revokedBy: result.revokedBy,
+        participants: result.participants,
+        message: `🔇 ${result.targetUsername}'s microphone was muted by ${result.revokedBy}.`
+      });
+    });
+
+    // Speaking state changed (triggered on mic on/off or voice activity detection)
+    socket.on('speaking_state', (payload) => {
+      const { isSpeaking } = payload || {};
+      const result = roomManager.setSpeakingState(socket.id, isSpeaking);
+
+      if (!result) return;
+      if (result.error) {
+        socket.emit('action_error', { message: result.error, action: 'speaking_state' });
+        return;
+      }
+
+      // Broadcast speaking state and audio ducking signal to all room participants
+      io.to(result.room.roomId).emit('user_speaking_state', {
+        userId: result.userId,
+        username: result.username,
+        isSpeaking: result.isSpeaking,
+        micAllowed: result.micAllowed,
+        participants: result.participants
+      });
+    });
+
+    // WebRTC Audio Signaling for Peer-to-Peer Voice
+    socket.on('voice_signal', (payload) => {
+      const { toUserId, signal } = payload || {};
+      const userInfo = roomManager.getUserBySocket(socket.id);
+      if (!userInfo) return;
+
+      const { room, participant } = userInfo;
+      const targetParticipant = room.participants.get(toUserId);
+
+      if (targetParticipant && targetParticipant.socketId) {
+        io.to(targetParticipant.socketId).emit('voice_signal', {
+          fromUserId: participant.userId,
+          fromUsername: participant.username,
+          fromSocketId: socket.id,
+          signal
+        });
+      }
+    });
+
+    // ================= 13. LEAVE ROOM (Explicit) =================
     socket.on('leave_room', () => {
       handleDisconnect(socket, io, true);
     });

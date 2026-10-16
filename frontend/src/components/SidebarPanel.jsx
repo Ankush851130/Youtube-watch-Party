@@ -9,7 +9,7 @@ export default function SidebarPanel({
   onTabChange,
   unreadCount: controlledUnreadCount
 }) {
-  const { room, user, assignRoleSocket, transferHostSocket, removeParticipantSocket, messages, sendMessageSocket, changeVideoSocket, addToast } = useSocket();
+  const { room, user, assignRoleSocket, transferHostSocket, removeParticipantSocket, messages, sendMessageSocket, changeVideoSocket, grantMicSocket, revokeMicSocket, addToast } = useSocket();
   const [internalActiveTab, setInternalActiveTab] = useState('recommendations'); // 'recommendations' | 'people' | 'chat'
   const [internalUnreadCount, setInternalUnreadCount] = useState(0);
   const [chatInputText, setChatInputText] = useState('');
@@ -65,6 +65,9 @@ export default function SidebarPanel({
     new Map((Array.isArray(rawParticipants) ? rawParticipants : []).map(p => [p.userId || p.username, p])).values()
   );
   const isHost = user?.role === 'HOST';
+  const isModerator = user?.role === 'MODERATOR';
+  const canManageMic = isHost || isModerator;
+  const pendingMicRequests = participants.filter(p => p.micRequested);
   const currentVideoId = room?.videoId || room?.currentVideoId || 'jfKfPfyJRdk';
 
   // Fetch YouTube Recommendations
@@ -263,6 +266,38 @@ export default function SidebarPanel({
               <span className="text-[#717171] font-mono text-[11px]">Room Limit: 50</span>
             </div>
 
+            {/* Speaking Permission Requests Banner (For Host / Moderator) */}
+            {canManageMic && pendingMicRequests.length > 0 && (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs space-y-2.5 animate-fade-in shadow-lg shadow-black/40">
+                <div className="flex items-center justify-between text-amber-300 font-bold">
+                  <span className="flex items-center gap-1.5">
+                    <span>✋</span> Speaking Permission Requests ({pendingMicRequests.length})
+                  </span>
+                </div>
+                <div className="space-y-1.5">
+                  {pendingMicRequests.map((req) => (
+                    <div key={req.userId} className="flex items-center justify-between p-2 rounded-lg bg-black/50 border border-white/5">
+                      <span className="text-white font-medium truncate max-w-[140px]">{req.username}</span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          onClick={() => grantMicSocket(req.userId)}
+                          className="px-2.5 py-1 rounded-lg bg-[#22C55E] hover:bg-[#16A34A] text-black font-bold text-[11px] shadow-sm cursor-pointer transition-all"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => revokeMicSocket(req.userId)}
+                          className="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[#AAAAAA] hover:text-white font-medium text-[11px] cursor-pointer transition-all"
+                        >
+                          Deny
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Users List */}
             {participants.length > 0 ? (
               <div className="flex flex-col gap-2.5">
@@ -274,71 +309,153 @@ export default function SidebarPanel({
                     <div 
                       key={p.userId} 
                       className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${
-                        isYou 
-                          ? 'bg-white/[0.03] hover:bg-[#181818] border-white/[0.06]' 
-                          : 'bg-white/[0.02] hover:bg-[#181818] border-white/[0.05]'
+                        p.isSpeaking
+                          ? 'bg-[#22C55E]/10 border-[#22C55E]/40 shadow-lg shadow-[#22C55E]/10'
+                          : isYou 
+                            ? 'bg-white/[0.03] hover:bg-[#181818] border-white/[0.06]' 
+                            : 'bg-white/[0.02] hover:bg-[#181818] border-white/[0.05]'
                       }`}
                     >
                       <div className="flex items-center gap-3.5 min-w-0">
-                        <div className={`relative w-11 h-11 rounded-full ${p.role === 'HOST' ? 'bg-[#FF0000]' : 'bg-[#202020]'} text-white flex items-center justify-center text-sm font-bold shrink-0 ring-2 ${p.role === 'HOST' ? 'ring-[#FF0000]/40' : 'ring-white/10'}`}>
+                        <div className={`relative w-11 h-11 rounded-full ${p.isSpeaking ? 'ring-2 ring-[#22C55E] animate-pulse bg-[#202020]' : p.role === 'HOST' ? 'bg-[#FF0000] ring-2 ring-[#FF0000]/40' : 'bg-[#202020] ring-2 ring-white/10'} text-white flex items-center justify-center text-sm font-bold shrink-0`}>
                           {p.username.charAt(0).toUpperCase()}
                           <span className={`absolute bottom-0 right-0 w-3 h-3 ${p.online ? 'bg-[#22C55E]' : 'bg-gray-500'} rounded-full ring-2 ring-[#121212]`}></span>
+                          {p.isSpeaking && (
+                            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#22C55E] text-black flex items-center justify-center text-[10px] shadow-md font-bold">
+                              🎙️
+                            </span>
+                          )}
                         </div>
                         <div className="flex flex-col min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-semibold text-white truncate">{p.username}</span>
                             {isYou && <span className="text-xs text-[#AAAAAA]">(You)</span>}
                           </div>
-                          <span className={`text-xs font-medium ${p.role === 'HOST' ? 'text-[#FF4D4D]' : 'text-slate-300'} flex items-center gap-1 mt-0.5`}>
-                            {roleLabel}
-                          </span>
+                          <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                            <span className={`text-xs font-medium ${p.role === 'HOST' ? 'text-[#FF4D4D]' : 'text-slate-300'}`}>
+                              {roleLabel}
+                            </span>
+                            {p.isSpeaking && (
+                              <span className="text-[10px] font-mono font-bold bg-[#22C55E]/20 text-[#22C55E] px-1.5 py-0.5 rounded border border-[#22C55E]/30 animate-pulse flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-ping" />
+                                Speaking
+                              </span>
+                            )}
+                            {!p.isSpeaking && p.micRequested && (
+                              <span className="text-[10px] font-mono font-semibold bg-amber-500/15 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30">
+                                ✋ Asked to speak
+                              </span>
+                            )}
+                            {!p.isSpeaking && p.micAllowed && p.role === 'PARTICIPANT' && (
+                              <span className="text-[10px] font-mono font-semibold bg-[#22C55E]/10 text-[#22C55E] px-1.5 py-0.5 rounded border border-[#22C55E]/20">
+                                🎙️ Mic Allowed
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
 
-                      {/* Dropdown for Host */}
-                      {isHost && !isYou && (
-                        <div className="relative">
-                          <button 
-                            onClick={() => setOpenUserDropdown(openUserDropdown === p.userId ? null : p.userId)}
-                            className="p-1.5 rounded-lg text-[#AAAAAA] hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-                            title={`Manage ${p.username}`}
-                          >
-                            <span className="material-symbols-outlined text-[20px]">more_vert</span>
-                          </button>
+                      {/* Quick Mic Action Buttons & Host Dropdown */}
+                      <div className="flex items-center gap-1.5">
+                        {canManageMic && !isYou && p.micRequested && (
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => grantMicSocket(p.userId)}
+                              className="px-2 py-1 rounded-lg bg-[#22C55E] hover:bg-[#16A34A] text-black font-bold text-[11px] shadow-sm cursor-pointer transition-all"
+                              title="Approve Speaking Request"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => revokeMicSocket(p.userId)}
+                              className="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-[#AAAAAA] hover:text-white cursor-pointer transition-all text-xs"
+                              title="Deny Request"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        )}
 
-                          {openUserDropdown === p.userId && (
-                            <div className="absolute right-0 mt-1 w-48 rounded-xl bg-[#202020] border border-white/10 shadow-2xl p-1 z-30 text-xs">
-                              <button 
-                                onClick={() => handleTransferHostAction(p)}
-                                className="w-full text-left px-3 py-2 text-amber-400 font-semibold hover:bg-amber-400/10 rounded-lg cursor-pointer flex items-center gap-1.5"
-                              >
-                                <span>👑 Make Host</span>
-                              </button>
-                              {p.role === 'MODERATOR' ? (
+                        {canManageMic && !isYou && p.micAllowed && p.role === 'PARTICIPANT' && !p.micRequested && (
+                          <button
+                            onClick={() => revokeMicSocket(p.userId)}
+                            className="px-2 py-1 rounded-lg bg-[#DC2626]/15 hover:bg-[#DC2626]/25 border border-[#DC2626]/30 text-[#FF8080] font-medium text-[11px] flex items-center gap-1 cursor-pointer transition-all"
+                            title="Mute / Revoke Speaking Permission"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">mic_off</span>
+                            <span>Mute</span>
+                          </button>
+                        )}
+
+                        {/* Dropdown for Host */}
+                        {isHost && !isYou && (
+                          <div className="relative">
+                            <button 
+                              onClick={() => setOpenUserDropdown(openUserDropdown === p.userId ? null : p.userId)}
+                              className="p-1.5 rounded-lg text-[#AAAAAA] hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                              title={`Manage ${p.username}`}
+                            >
+                              <span className="material-symbols-outlined text-[20px]">more_vert</span>
+                            </button>
+
+                            {openUserDropdown === p.userId && (
+                              <div className="absolute right-0 mt-1 w-48 rounded-xl bg-[#202020] border border-white/10 shadow-2xl p-1 z-30 text-xs">
+                                {p.role === 'PARTICIPANT' && (
+                                  p.micAllowed ? (
+                                    <button
+                                      onClick={() => {
+                                        revokeMicSocket(p.userId);
+                                        setOpenUserDropdown(null);
+                                      }}
+                                      className="w-full text-left px-3 py-2 text-[#FF8080] hover:bg-[#DC2626]/10 rounded-lg cursor-pointer flex items-center gap-1.5"
+                                    >
+                                      <span>🔇 Revoke Mic</span>
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() => {
+                                        grantMicSocket(p.userId);
+                                        setOpenUserDropdown(null);
+                                      }}
+                                      className="w-full text-left px-3 py-2 text-[#22C55E] hover:bg-[#22C55E]/10 rounded-lg cursor-pointer flex items-center gap-1.5"
+                                    >
+                                      <span>🎙️ Allow to Speak</span>
+                                    </button>
+                                  )
+                                )}
+
                                 <button 
-                                  onClick={() => handleRoleAction(p, 'PARTICIPANT')}
-                                  className="w-full text-left px-3 py-2 text-slate-300 hover:text-white hover:bg-white/[0.06] rounded-lg cursor-pointer"
+                                  onClick={() => handleTransferHostAction(p)}
+                                  className="w-full text-left px-3 py-2 text-amber-400 font-semibold hover:bg-amber-400/10 rounded-lg cursor-pointer flex items-center gap-1.5"
                                 >
-                                  Demote to Participant
+                                  <span>👑 Make Host</span>
                                 </button>
-                              ) : (
+                                {p.role === 'MODERATOR' ? (
+                                  <button 
+                                    onClick={() => handleRoleAction(p, 'PARTICIPANT')}
+                                    className="w-full text-left px-3 py-2 text-slate-300 hover:text-white hover:bg-white/[0.06] rounded-lg cursor-pointer"
+                                  >
+                                    Demote to Participant
+                                  </button>
+                                ) : (
+                                  <button 
+                                    onClick={() => handleRoleAction(p, 'MODERATOR')}
+                                    className="w-full text-left px-3 py-2 text-slate-200 hover:text-white hover:bg-white/[0.06] rounded-lg cursor-pointer"
+                                  >
+                                    Make Moderator
+                                  </button>
+                                )}
                                 <button 
-                                  onClick={() => handleRoleAction(p, 'MODERATOR')}
-                                  className="w-full text-left px-3 py-2 text-slate-200 hover:text-white hover:bg-white/[0.06] rounded-lg cursor-pointer"
+                                  onClick={() => handleRemoveAction(p)}
+                                  className="w-full text-left px-3 py-2 text-[#DC2626] hover:bg-[#DC2626]/10 rounded-lg cursor-pointer"
                                 >
-                                  Make Moderator
+                                  Remove from Room
                                 </button>
-                              )}
-                              <button 
-                                onClick={() => handleRemoveAction(p)}
-                                className="w-full text-left px-3 py-2 text-[#DC2626] hover:bg-[#DC2626]/10 rounded-lg cursor-pointer"
-                              >
-                                Remove from Room
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   );
                 })}

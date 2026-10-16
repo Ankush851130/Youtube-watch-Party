@@ -85,7 +85,7 @@ export default function RoleModal({ isOpen, onClose, targetUser, defaultRole = '
               <span className="text-xs font-semibold text-white flex items-center gap-1.5">
                 <span>🛡️</span> Moderator
               </span>
-              <span className="text-[10px] sm:text-[11px] text-[#AAAAAA] mt-0.5">Can pause, play, seek, and change video. Cannot remove participants.</span>
+              <span className="text-[10px] sm:text-[11px] text-[#AAAAAA] mt-0.5">Can control playback and speak freely anytime with automatic audio ducking.</span>
             </div>
           </label>
 
@@ -109,7 +109,7 @@ export default function RoleModal({ isOpen, onClose, targetUser, defaultRole = '
               <span className="text-xs font-semibold text-white flex items-center gap-1.5">
                 <span>👤</span> Participant
               </span>
-              <span className="text-[10px] sm:text-[11px] text-[#AAAAAA] mt-0.5">View-only synchronization. Viewers can send chat and emoji reactions.</span>
+              <span className="text-[10px] sm:text-[11px] text-[#AAAAAA] mt-0.5">Synchronized viewer. Must request permission from Host/Moderator to speak.</span>
             </div>
           </label>
         </div>

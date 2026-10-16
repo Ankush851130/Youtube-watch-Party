@@ -18,6 +18,8 @@ export function SocketProvider({ children }) {
   const [toasts, setToasts] = useState([]);
   const [messages, setMessages] = useState([]);
   const [floatingEmojis, setFloatingEmojis] = useState([]);
+  const [activeSpeakers, setActiveSpeakers] = useState([]); // [{ userId, username }]
+  const [micRequests, setMicRequests] = useState([]); // [{ userId, username }]
 
   const socketRef = useRef(null);
   const activeRoomParamsRef = useRef(null);
@@ -250,6 +252,55 @@ export function SocketProvider({ children }) {
       }, 2600);
     });
 
+    // ================= AUDIO DUCKING & MIC EVENTS =================
+    newSocket.on('mic_requested', (data) => {
+      setRoom(prev => prev ? { ...prev, participants: data.participants } : null);
+      setMicRequests(prev => {
+        if (prev.some(r => r.userId === data.userId)) return prev;
+        return [...prev, { userId: data.userId, username: data.username }];
+      });
+      addToast(data.message || `✋ ${data.username} requested permission to speak`, 'info');
+    });
+
+    newSocket.on('mic_request_cancelled', (data) => {
+      setRoom(prev => prev ? { ...prev, participants: data.participants } : null);
+      setMicRequests(prev => prev.filter(r => r.userId !== data.userId));
+    });
+
+    newSocket.on('mic_granted', (data) => {
+      setRoom(prev => prev ? { ...prev, participants: data.participants } : null);
+      setMicRequests(prev => prev.filter(r => r.userId !== data.targetUserId));
+      addToast(data.message || `🎙️ ${data.targetUsername} granted mic access`, 'info');
+    });
+
+    newSocket.on('mic_granted_self', (data) => {
+      addToast(data.message || '🎙️ You can now speak! Click unmute or hold Spacebar.', 'success');
+    });
+
+    newSocket.on('mic_revoked', (data) => {
+      setRoom(prev => prev ? { ...prev, participants: data.participants } : null);
+      setActiveSpeakers(prev => prev.filter(s => s.userId !== data.targetUserId));
+      addToast(data.message || `🔇 ${data.targetUsername}'s mic access was revoked`, 'warning');
+    });
+
+    newSocket.on('mic_revoked_self', (data) => {
+      setActiveSpeakers(prev => prev.filter(s => s.userId === user?.userId));
+      addToast(data.message || '🔇 Your microphone permission was revoked.', 'error');
+    });
+
+    // Speaking state changed (Audio Ducking trigger)
+    newSocket.on('user_speaking_state', (data) => {
+      setRoom(prev => prev ? { ...prev, participants: data.participants } : null);
+      setActiveSpeakers(prev => {
+        if (data.isSpeaking) {
+          if (prev.some(s => s.userId === data.userId)) return prev;
+          return [...prev, { userId: data.userId, username: data.username }];
+        } else {
+          return prev.filter(s => s.userId !== data.userId);
+        }
+      });
+    });
+
     return () => {
       newSocket.disconnect();
     };
@@ -347,11 +398,38 @@ export function SocketProvider({ children }) {
     if (socketRef.current) socketRef.current.emit('emoji_reaction', { emoji });
   };
 
+  // Mic Permission & Speaking State Sockets
+  const requestMicSocket = () => {
+    if (socketRef.current) socketRef.current.emit('request_mic');
+  };
+
+  const cancelMicRequestSocket = () => {
+    if (socketRef.current) socketRef.current.emit('cancel_mic_request');
+  };
+
+  const grantMicSocket = (targetUserId) => {
+    if (socketRef.current) socketRef.current.emit('grant_mic', { targetUserId });
+  };
+
+  const revokeMicSocket = (targetUserId) => {
+    if (socketRef.current) socketRef.current.emit('revoke_mic', { targetUserId });
+  };
+
+  const setSpeakingStateSocket = (isSpeaking) => {
+    if (socketRef.current) socketRef.current.emit('speaking_state', { isSpeaking });
+  };
+
+  const sendVoiceSignalSocket = (toUserId, signal) => {
+    if (socketRef.current) socketRef.current.emit('voice_signal', { toUserId, signal });
+  };
+
   const leaveRoomSocket = () => {
     activeRoomParamsRef.current = null;
     if (socketRef.current) socketRef.current.emit('leave_room');
     setRoom(null);
   };
+
+  const isAudioDucked = activeSpeakers.length > 0;
 
   return (
     <SocketContext.Provider value={{
@@ -365,6 +443,15 @@ export function SocketProvider({ children }) {
       removeToast,
       messages,
       floatingEmojis,
+      activeSpeakers,
+      micRequests,
+      isAudioDucked,
+      requestMicSocket,
+      cancelMicRequestSocket,
+      grantMicSocket,
+      revokeMicSocket,
+      setSpeakingStateSocket,
+      sendVoiceSignalSocket,
       joinRoomSocket,
       playSocket,
       pauseSocket,

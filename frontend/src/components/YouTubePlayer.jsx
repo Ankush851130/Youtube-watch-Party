@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useSocket } from '../context/SocketContext';
 
 export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenSearch, onOpenPasteUrl }) {
-  const { room, user, connectionState, playSocket, pauseSocket, seekSocket, changeVideoSocket, changeSpeedSocket, floatingEmojis, addToast } = useSocket();
+  const { room, user, connectionState, playSocket, pauseSocket, seekSocket, changeVideoSocket, changeSpeedSocket, floatingEmojis, activeSpeakers, isAudioDucked, addToast } = useSocket();
 
   const containerRef = useRef(null);
   const playerRef = useRef(null);
@@ -555,6 +555,68 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
     }
   };
 
+  // ================= AUTOMATIC AUDIO DUCKING =================
+  // When someone speaks, smoothly drop video volume to 25%
+  // When they stop speaking, smoothly restore volume back to original level
+  const duckingIntervalRef = useRef(null);
+  const originalVolumeRef = useRef(volume);
+
+  useEffect(() => {
+    if (!isAudioDucked) {
+      originalVolumeRef.current = volume;
+    }
+  }, [volume, isAudioDucked]);
+
+  useEffect(() => {
+    if (!playerRef.current || typeof playerRef.current.setVolume !== 'function') return;
+
+    if (isAudioDucked) {
+      if (duckingIntervalRef.current) clearInterval(duckingIntervalRef.current);
+
+      const targetDucked = Math.max(8, Math.round((originalVolumeRef.current || volume) * 0.25));
+      let currentVol = typeof playerRef.current.getVolume === 'function' ? playerRef.current.getVolume() : volume;
+
+      // Smooth step down every 25ms over ~200ms
+      duckingIntervalRef.current = setInterval(() => {
+        if (currentVol > targetDucked) {
+          currentVol = Math.max(targetDucked, currentVol - 10);
+          try {
+            playerRef.current.setVolume(currentVol);
+          } catch (e) {}
+        } else {
+          clearInterval(duckingIntervalRef.current);
+          duckingIntervalRef.current = null;
+        }
+      }, 25);
+    } else {
+      // Restore volume smoothly
+      if (duckingIntervalRef.current) clearInterval(duckingIntervalRef.current);
+
+      const targetRestore = originalVolumeRef.current || volume;
+      let currentVol = typeof playerRef.current.getVolume === 'function' ? playerRef.current.getVolume() : targetRestore;
+
+      // Smooth step up every 30ms over ~300ms
+      duckingIntervalRef.current = setInterval(() => {
+        if (currentVol < targetRestore) {
+          currentVol = Math.min(targetRestore, currentVol + 8);
+          try {
+            playerRef.current.setVolume(currentVol);
+          } catch (e) {}
+        } else {
+          try {
+            playerRef.current.setVolume(targetRestore);
+          } catch (e) {}
+          clearInterval(duckingIntervalRef.current);
+          duckingIntervalRef.current = null;
+        }
+      }, 30);
+    }
+
+    return () => {
+      if (duckingIntervalRef.current) clearInterval(duckingIntervalRef.current);
+    };
+  }, [isAudioDucked, volume]);
+
   // Change Video Playback Quality
   const handleQualityChange = (newQuality) => {
     setQuality(newQuality);
@@ -644,6 +706,23 @@ export default function YouTubePlayer({ videoId, isPlaying, currentTime, onOpenS
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
         ></iframe>
+      )}
+
+      {/* Dynamic Audio Ducking Speaking Indicator */}
+      {isAudioDucked && activeSpeakers && activeSpeakers.length > 0 && (
+        <div className="absolute top-3 sm:top-4 left-3 sm:left-4 z-40 flex items-center gap-2 sm:gap-2.5 px-3 sm:px-3.5 py-1.5 rounded-full bg-black/85 backdrop-blur-md border border-[#22C55E]/60 text-white shadow-2xl shadow-black/80 pointer-events-none transition-all">
+          <div className="relative flex items-center justify-center">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#22C55E] animate-ping absolute" />
+            <span className="w-2 h-2 rounded-full bg-[#22C55E] relative" />
+          </div>
+          <span className="material-symbols-outlined text-[16px] text-[#22C55E]">mic</span>
+          <span className="text-xs font-bold text-white truncate max-w-[150px] sm:max-w-[220px]">
+            {activeSpeakers.map(s => s.username).join(', ')} speaking
+          </span>
+          <span className="text-[10px] font-mono font-semibold text-[#22C55E] bg-[#22C55E]/15 px-2 py-0.5 rounded-full border border-[#22C55E]/30 hidden xs:inline">
+            Sound Ducked 25%
+          </span>
+        </div>
       )}
 
       {/* Default Watch Party Poster Screen (When no video is selected yet) */}

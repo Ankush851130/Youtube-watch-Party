@@ -45,7 +45,10 @@ class RoomManager {
       username: hostUsername || 'Host User',
       role: 'HOST',
       socketId: null,
-      joinedAt: new Date()
+      joinedAt: new Date(),
+      micAllowed: true,
+      micRequested: false,
+      isSpeaking: false
     };
 
     const roomState = {
@@ -133,7 +136,10 @@ class RoomManager {
       username: p.username,
       role: p.role,
       online: Boolean(p.socketId),
-      joinedAt: p.joinedAt
+      joinedAt: p.joinedAt,
+      micAllowed: Boolean(p.role === 'HOST' || p.role === 'MODERATOR' || p.micAllowed),
+      micRequested: Boolean(p.micRequested),
+      isSpeaking: Boolean(p.isSpeaking)
     }));
   }
 
@@ -213,7 +219,10 @@ class RoomManager {
         username: username || 'Host User',
         role: 'HOST',
         socketId,
-        joinedAt: new Date()
+        joinedAt: new Date(),
+        micAllowed: true,
+        micRequested: false,
+        isSpeaking: false
       };
       room.participants.set(requestedUserId, participant);
     } else {
@@ -227,7 +236,10 @@ class RoomManager {
         username: username || `Guest_${userId.slice(-4)}`,
         role,
         socketId,
-        joinedAt: new Date()
+        joinedAt: new Date(),
+        micAllowed: role === 'HOST' || role === 'MODERATOR',
+        micRequested: false,
+        isSpeaking: false
       };
 
       if (isFirstUser) {
@@ -293,6 +305,15 @@ class RoomManager {
 
   canRemoveParticipant(participant) {
     return participant && participant.role === 'HOST';
+  }
+
+  // Audio permission checks
+  canSpeakFreely(participant) {
+    return participant && (participant.role === 'HOST' || participant.role === 'MODERATOR');
+  }
+
+  canManageAudio(participant) {
+    return participant && (participant.role === 'HOST' || participant.role === 'MODERATOR');
   }
 
   // Update Playback State (play, pause, seek, change_video)
@@ -422,6 +443,13 @@ class RoomManager {
     }
 
     target.role = newRole;
+    if (newRole === 'HOST' || newRole === 'MODERATOR') {
+      target.micAllowed = true;
+      target.micRequested = false;
+    } else {
+      target.micAllowed = false;
+      target.isSpeaking = false;
+    }
 
     return {
       success: true,
@@ -494,6 +522,144 @@ class RoomManager {
       targetUserId,
       targetSocketId,
       targetUsername: target.username,
+      participants: this.getParticipantsArray(room)
+    };
+  }
+
+  // ================= AUDIO DUCKING & MIC PERMISSION METHODS =================
+  // Participant requests permission to speak
+  requestMic(socketId) {
+    const userInfo = this.getUserBySocket(socketId);
+    if (!userInfo) return { error: 'Unauthorized: User not found in room.' };
+
+    const { room, participant } = userInfo;
+
+    if (this.canSpeakFreely(participant)) {
+      participant.micAllowed = true;
+      participant.micRequested = false;
+      return {
+        success: true,
+        alreadyAllowed: true,
+        room,
+        participant,
+        participants: this.getParticipantsArray(room)
+      };
+    }
+
+    participant.micRequested = true;
+
+    return {
+      success: true,
+      room,
+      participant,
+      participants: this.getParticipantsArray(room)
+    };
+  }
+
+  // Host or Moderator grants permission to speak
+  grantMic(socketId, targetUserId) {
+    const userInfo = this.getUserBySocket(socketId);
+    if (!userInfo) return { error: 'Unauthorized: User not found in room.' };
+
+    const { room, participant } = userInfo;
+
+    if (!this.canManageAudio(participant)) {
+      return { error: 'Permission Denied: Only Host or Moderator can approve speaking requests.' };
+    }
+
+    const target = room.participants.get(targetUserId);
+    if (!target) return { error: 'Target participant not found in room.' };
+
+    target.micAllowed = true;
+    target.micRequested = false;
+
+    return {
+      success: true,
+      room,
+      targetUserId: target.userId,
+      targetUsername: target.username,
+      targetSocketId: target.socketId,
+      grantedBy: participant.username,
+      participants: this.getParticipantsArray(room)
+    };
+  }
+
+  // Host or Moderator revokes permission to speak
+  revokeMic(socketId, targetUserId) {
+    const userInfo = this.getUserBySocket(socketId);
+    if (!userInfo) return { error: 'Unauthorized: User not found in room.' };
+
+    const { room, participant } = userInfo;
+
+    if (!this.canManageAudio(participant)) {
+      return { error: 'Permission Denied: Only Host or Moderator can mute participants.' };
+    }
+
+    const target = room.participants.get(targetUserId);
+    if (!target) return { error: 'Target participant not found in room.' };
+
+    if (target.role === 'HOST') {
+      return { error: 'Cannot revoke mic from the Host.' };
+    }
+
+    target.micAllowed = false;
+    target.micRequested = false;
+    target.isSpeaking = false;
+
+    return {
+      success: true,
+      room,
+      targetUserId: target.userId,
+      targetUsername: target.username,
+      targetSocketId: target.socketId,
+      revokedBy: participant.username,
+      participants: this.getParticipantsArray(room)
+    };
+  }
+
+  // Cancel own request / Lower hand
+  cancelMicRequest(socketId) {
+    const userInfo = this.getUserBySocket(socketId);
+    if (!userInfo) return null;
+    const { room, participant } = userInfo;
+
+    participant.micRequested = false;
+    return {
+      success: true,
+      room,
+      participant,
+      participants: this.getParticipantsArray(room)
+    };
+  }
+
+  // Update speaking state (when mic opened/closed or voice detected)
+  setSpeakingState(socketId, isSpeaking) {
+    const userInfo = this.getUserBySocket(socketId);
+    if (!userInfo) return null;
+
+    const { room, participant } = userInfo;
+    const speakingBool = Boolean(isSpeaking);
+
+    // Permission enforcement
+    const isAllowed = this.canSpeakFreely(participant) || Boolean(participant.micAllowed);
+    if (speakingBool && !isAllowed) {
+      return { error: 'Permission required: You must request permission to speak.', notAllowed: true };
+    }
+
+    participant.isSpeaking = speakingBool;
+
+    // When a participant stops speaking / turns off mic, reset micAllowed so they must request permission next time
+    if (!speakingBool && participant.role === 'PARTICIPANT') {
+      participant.micAllowed = false;
+    }
+
+    return {
+      success: true,
+      room,
+      userId: participant.userId,
+      username: participant.username,
+      isSpeaking: participant.isSpeaking,
+      micAllowed: Boolean(participant.micAllowed),
       participants: this.getParticipantsArray(room)
     };
   }

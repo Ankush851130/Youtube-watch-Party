@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSocket } from '../context/SocketContext';
+import { useVoiceChat } from '../hooks/useVoiceChat';
 
 export default function VideoInfoRow({ 
   onOpenSearch, 
@@ -10,6 +11,17 @@ export default function VideoInfoRow({
   onLeaveRoom 
 }) {
   const { room, user, sendEmojiSocket, addToast } = useSocket();
+  const { 
+    isMicOn, 
+    isSpeakingLocally, 
+    isHostOrMod, 
+    isMicAllowed, 
+    isMicRequested, 
+    isPushToTalk, 
+    setIsPushToTalk, 
+    toggleMic 
+  } = useVoiceChat();
+  const [showVoiceSettings, setShowVoiceSettings] = useState(false);
 
   const userRole = user?.role || 'PARTICIPANT';
   const canControl = userRole === 'HOST' || userRole === 'MODERATOR';
@@ -96,6 +108,120 @@ export default function VideoInfoRow({
               <span>Playback locked to Host/Mod</span>
             </div>
           )}
+
+          {/* VOICE & AUDIO DUCKING CONTROL */}
+          <div className="relative flex items-center gap-1">
+            {isHostOrMod ? (
+              // HOST & MODERATOR: Free speech at any time
+              <button
+                onClick={toggleMic}
+                className={`h-9 sm:h-11 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 rounded-xl font-semibold text-xs sm:text-sm transition-all cursor-pointer shadow-md ${
+                  isMicOn
+                    ? 'bg-[#22C55E] hover:bg-[#16A34A] text-black shadow-[#22C55E]/40 animate-pulse'
+                    : 'bg-[#181818] hover:bg-[#202020] border border-white/10 text-white hover:border-[#22C55E]/50'
+                }`}
+                title={isMicOn ? 'Click to Mute Microphone' : 'Click to Speak (Host/Mod: Free Speech)'}
+              >
+                <span className={`material-symbols-outlined text-[18px] sm:text-[20px] ${isMicOn ? 'text-black' : 'text-[#22C55E]'}`}>
+                  {isMicOn ? 'mic' : 'mic_off'}
+                </span>
+                <span>{isMicOn ? (isSpeakingLocally ? 'Speaking...' : 'Mic: ON') : 'Speak'}</span>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-black/20 text-white/90 hidden md:inline">
+                  {userRole === 'HOST' ? '👑 Host' : '🛡️ Mod'}
+                </span>
+              </button>
+            ) : isMicAllowed ? (
+              // PARTICIPANT (Approved by Host/Mod): Can speak!
+              <button
+                onClick={toggleMic}
+                className={`h-9 sm:h-11 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 rounded-xl font-semibold text-xs sm:text-sm transition-all cursor-pointer shadow-md ${
+                  isMicOn
+                    ? 'bg-[#22C55E] hover:bg-[#16A34A] text-black shadow-[#22C55E]/40 animate-pulse'
+                    : 'bg-[#22C55E]/20 hover:bg-[#22C55E]/30 border border-[#22C55E]/50 text-[#22C55E]'
+                }`}
+                title={isMicOn ? 'Click to Mute Mic' : 'Speaking Approved! Click to Unmute'}
+              >
+                <span className="material-symbols-outlined text-[18px] sm:text-[20px]">
+                  {isMicOn ? 'mic' : 'mic_none'}
+                </span>
+                <span>{isMicOn ? 'Mic: ON' : 'Unmute (Approved)'}</span>
+              </button>
+            ) : (
+              // PARTICIPANT (Needs Permission): Must request
+              <button
+                onClick={toggleMic}
+                className={`h-9 sm:h-11 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 rounded-xl font-semibold text-xs sm:text-sm transition-all cursor-pointer border ${
+                  isMicRequested
+                    ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 animate-pulse'
+                    : 'bg-[#181818] hover:bg-[#202020] border-white/10 text-slate-200 hover:border-amber-400/40 hover:text-white'
+                }`}
+                title={isMicRequested ? 'Waiting for Host/Moderator to approve... Click to cancel' : 'Ask permission to speak'}
+              >
+                <span className="text-sm">✋</span>
+                <span>{isMicRequested ? 'Waiting...' : 'Ask to Speak'}</span>
+              </button>
+            )}
+
+            {/* Voice Settings Gear Button */}
+            <button
+              onClick={() => setShowVoiceSettings(!showVoiceSettings)}
+              className={`h-9 sm:h-11 w-9 sm:w-11 flex items-center justify-center rounded-xl border transition-all cursor-pointer ${
+                showVoiceSettings
+                  ? 'bg-white/20 border-white/40 text-white'
+                  : 'bg-[#181818] hover:bg-[#202020] border-white/10 text-[#AAAAAA] hover:text-white'
+              }`}
+              title="Voice & Audio Ducking Settings"
+            >
+              <span className="material-symbols-outlined text-[18px]">tune</span>
+            </button>
+
+            {/* Voice Settings Dropdown Popover */}
+            {showVoiceSettings && (
+              <div className="absolute left-0 bottom-full mb-2 w-72 p-3.5 bg-[#1C1C1C] border border-white/10 rounded-2xl shadow-2xl z-50 text-white space-y-3 animate-fade-in">
+                <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                    <span className="text-[#22C55E]">🎙️</span> Voice & Audio Ducking
+                  </div>
+                  <button 
+                    onClick={() => setShowVoiceSettings(false)}
+                    className="text-[#AAAAAA] hover:text-white text-xs cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-300 font-medium">Auto Audio Ducking</span>
+                    <span className="text-[#22C55E] font-bold text-[11px] bg-[#22C55E]/10 px-2 py-0.5 rounded border border-[#22C55E]/30">Active (25%)</span>
+                  </div>
+                  <p className="text-[10px] text-[#AAAAAA] leading-normal">
+                    When someone speaks, YouTube video sound drops smoothly so voice is clear.
+                  </p>
+                </div>
+
+                <div className="pt-2 border-t border-white/10 space-y-2">
+                  <label className="flex items-center justify-between cursor-pointer">
+                    <span className="text-xs text-slate-300 font-medium">Push-to-Talk (Spacebar)</span>
+                    <input
+                      type="checkbox"
+                      checked={isPushToTalk}
+                      onChange={(e) => setIsPushToTalk(e.target.checked)}
+                      className="accent-[#22C55E] cursor-pointer"
+                    />
+                  </label>
+                  <p className="text-[10px] text-[#AAAAAA]">
+                    {isPushToTalk ? 'Hold Spacebar to speak (when not typing in chat).' : 'Mic is open while toggled ON.'}
+                  </p>
+                </div>
+
+                <div className="p-2 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center gap-2 text-[10px] text-slate-300">
+                  <span>🎧</span>
+                  <span>Use headphones to prevent echo while speaking.</span>
+                </div>
+              </div>
+            )}
+          </div>
 
           <button 
             onClick={copyRoomLink}
