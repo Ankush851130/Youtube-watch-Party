@@ -40,6 +40,10 @@ export function useVoiceChat() {
   const peersRef = useRef(new Map());
   // Remote audio elements: Map<userId, HTMLAudioElement>
   const remoteAudiosRef = useRef(new Map());
+  // Pending ICE candidates queue: Map<userId, RTCIceCandidateInit[]>
+  const pendingCandidatesRef = useRef(new Map());
+  // Offer collision tracker: Map<userId, boolean>
+  const isMakingOfferRef = useRef(new Map());
 
   // Current participant in room
   const currentParticipant = room?.participants?.find(p => p.userId === user?.userId);
@@ -47,6 +51,27 @@ export function useVoiceChat() {
   const isHostOrMod = role === 'HOST' || role === 'MODERATOR';
   const isMicAllowed = isHostOrMod || Boolean(currentParticipant?.micAllowed);
   const isMicRequested = Boolean(currentParticipant?.micRequested);
+
+  // User gesture unlock for audio elements blocked by browser autoplay policy
+  const unlockAllRemoteAudios = useCallback(() => {
+    remoteAudiosRef.current.forEach((audioEl) => {
+      if (audioEl && audioEl.paused && audioEl.srcObject) {
+        audioEl.play().catch(() => {});
+      }
+    });
+    if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume().catch(() => {});
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('click', unlockAllRemoteAudios);
+    window.addEventListener('keydown', unlockAllRemoteAudios);
+    return () => {
+      window.removeEventListener('click', unlockAllRemoteAudios);
+      window.removeEventListener('keydown', unlockAllRemoteAudios);
+    };
+  }, [unlockAllRemoteAudios]);
 
   // Cleanup local audio streams
   const stopLocalAudio = useCallback(() => {
@@ -95,6 +120,9 @@ export function useVoiceChat() {
       if (!AudioContextClass) return;
 
       const audioCtx = new AudioContextClass();
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(err => console.warn('AudioContext resume warning:', err));
+      }
       audioContextRef.current = audioCtx;
 
       const source = audioCtx.createMediaStreamSource(stream);
@@ -130,7 +158,7 @@ export function useVoiceChat() {
             setSpeakingStateSocket(true);
           }
         } else {
-          // If silence detected, wait 800ms before ducking release
+          // If silence detected, wait 850ms before ducking release
           if (isSpeakingRef.current && !silenceTimerRef.current) {
             silenceTimerRef.current = setTimeout(() => {
               isSpeakingRef.current = false;
@@ -150,19 +178,19 @@ export function useVoiceChat() {
     }
   }, [setSpeakingStateSocket]);
 
-  // Connect local stream to WebRTC peers
-  const attachLocalStreamToPeers = useCallback((stream) => {
-    peersRef.current.forEach((pc) => {
-      stream.getTracks().forEach(track => {
-        const senders = pc.getSenders();
-        const existingSender = senders.find(s => s.track && s.track.kind === track.kind);
-        if (existingSender) {
-          existingSender.replaceTrack(track);
-        } else {
-          pc.addTrack(track, stream);
-        }
-      });
-    });
+  // Drain buffered ICE candidates after setRemoteDescription
+  const drainIceCandidates = useCallback(async (remoteUserId, pc) => {
+    const queue = pendingCandidatesRef.current.get(remoteUserId);
+    if (!queue || queue.length === 0) return;
+
+    while (queue.length > 0) {
+      const candidate = queue.shift();
+      try {
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+      } catch (err) {
+        console.warn('Error adding buffered ICE candidate:', err);
+      }
+    }
   }, []);
 
   // WebRTC Peer Connection Helper
@@ -174,17 +202,18 @@ export function useVoiceChat() {
     try {
       const pc = new RTCPeerConnection(ICE_SERVERS);
 
-      // Handle ICE candidates
+      // Handle local ICE candidates and send to remote peer
       pc.onicecandidate = (event) => {
         if (event.candidate && socket) {
           sendVoiceSignalSocket(remoteUserId, { candidate: event.candidate });
         }
       };
 
-      // Handle incoming remote audio stream
+      // Handle incoming remote audio stream with fallback for event.streams
       pc.ontrack = (event) => {
-        const [remoteStream] = event.streams;
-        if (!remoteStream) return;
+        const remoteStream = (event.streams && event.streams[0])
+          ? event.streams[0]
+          : new MediaStream([event.track]);
 
         let audioEl = remoteAudiosRef.current.get(remoteUserId);
         if (!audioEl) {
@@ -195,15 +224,25 @@ export function useVoiceChat() {
           document.body.appendChild(audioEl);
           remoteAudiosRef.current.set(remoteUserId, audioEl);
         }
+
         audioEl.srcObject = remoteStream;
-        audioEl.play().catch(e => console.warn('Autoplay audio blocked until user gesture:', e));
+        const playPromise = audioEl.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((e) => {
+            console.warn('Autoplay audio blocked by browser policy, will retry on user gesture:', e);
+          });
+        }
       };
 
-      // If local stream already active, add tracks
+      // Attach local stream if already active, otherwise add recvonly transceiver
       if (localStreamRef.current) {
-        localStreamRef.current.getTracks().forEach(track => {
+        localStreamRef.current.getTracks().forEach((track) => {
           pc.addTrack(track, localStreamRef.current);
         });
+      } else {
+        try {
+          pc.addTransceiver('audio', { direction: 'recvonly' });
+        } catch (e) {}
       }
 
       peersRef.current.set(remoteUserId, pc);
@@ -213,6 +252,39 @@ export function useVoiceChat() {
       return null;
     }
   }, [sendVoiceSignalSocket, socket]);
+
+  // Connect local stream tracks to all established WebRTC peers
+  const attachLocalStreamToPeers = useCallback((stream) => {
+    peersRef.current.forEach((pc) => {
+      stream.getTracks().forEach((track) => {
+        const senders = pc.getSenders();
+        const existingSender = senders.find(s => s.track && s.track.kind === track.kind);
+        if (existingSender) {
+          existingSender.replaceTrack(track);
+        } else {
+          pc.addTrack(track, stream);
+        }
+      });
+    });
+  }, []);
+
+  // Send an offer to a specific peer
+  const initiateOfferToPeer = useCallback(async (remoteUserId) => {
+    const pc = createPeerConnection(remoteUserId);
+    if (!pc) return;
+
+    try {
+      isMakingOfferRef.current.set(remoteUserId, true);
+      const offer = await pc.createOffer();
+      if (pc.signalingState !== 'stable') return;
+      await pc.setLocalDescription(offer);
+      sendVoiceSignalSocket(remoteUserId, { offer });
+    } catch (err) {
+      console.warn(`Error creating voice offer for user ${remoteUserId}:`, err);
+    } finally {
+      isMakingOfferRef.current.set(remoteUserId, false);
+    }
+  }, [createPeerConnection, sendVoiceSignalSocket]);
 
   // Start Local Microphone
   const startLocalAudio = useCallback(async () => {
@@ -234,18 +306,9 @@ export function useVoiceChat() {
 
       // Initiate WebRTC offers to all other online participants
       if (room?.participants) {
-        room.participants.forEach(async (p) => {
+        room.participants.forEach((p) => {
           if (p.userId !== user?.userId && p.online) {
-            const pc = createPeerConnection(p.userId);
-            if (pc) {
-              try {
-                const offer = await pc.createOffer();
-                await pc.setLocalDescription(offer);
-                sendVoiceSignalSocket(p.userId, { offer });
-              } catch (e) {
-                console.warn('Error creating voice offer:', e);
-              }
-            }
+            initiateOfferToPeer(p.userId);
           }
         });
       }
@@ -257,7 +320,18 @@ export function useVoiceChat() {
       setIsMicOn(false);
       addToast('Could not access microphone. Please check browser permissions.', 'error');
     }
-  }, [addToast, attachLocalStreamToPeers, createPeerConnection, room?.participants, sendVoiceSignalSocket, startVAD, user?.userId]);
+  }, [addToast, attachLocalStreamToPeers, initiateOfferToPeer, room?.participants, startVAD, user?.userId]);
+
+  // Automatically connect to newly joined participants if local mic is on
+  useEffect(() => {
+    if (!isMicOn || !localStreamRef.current || !room?.participants) return;
+
+    room.participants.forEach((p) => {
+      if (p.userId !== user?.userId && p.online && !peersRef.current.has(p.userId)) {
+        initiateOfferToPeer(p.userId);
+      }
+    });
+  }, [room?.participants, isMicOn, user?.userId, initiateOfferToPeer]);
 
   // Toggle Mic on/off or Request Permission
   const handleToggleMic = useCallback(() => {
@@ -282,7 +356,7 @@ export function useVoiceChat() {
     startLocalAudio();
   }, [cancelMicRequestSocket, isMicAllowed, isMicOn, isMicRequested, requestMicSocket, startLocalAudio, stopLocalAudio, addToast]);
 
-  // Handle incoming WebRTC voice signaling
+  // Handle incoming WebRTC voice signaling with candidate buffering & collision safety
   useEffect(() => {
     if (!socket) return;
 
@@ -293,16 +367,37 @@ export function useVoiceChat() {
 
       try {
         if (signal.offer) {
+          const isPolite = user?.userId && fromUserId && user.userId.localeCompare(fromUserId) < 0;
+          const offerCollision = pc.signalingState !== 'stable' || isMakingOfferRef.current.get(fromUserId);
+
+          if (offerCollision) {
+            if (!isPolite) {
+              return; // Ignore the collision offer, higher ID takes precedence
+            }
+            await pc.setLocalDescription({ type: 'rollback' }).catch(() => {});
+          }
+
           await pc.setRemoteDescription(new RTCSessionDescription(signal.offer));
+          await drainIceCandidates(fromUserId, pc);
+
           const answer = await pc.createAnswer();
           await pc.setLocalDescription(answer);
           sendVoiceSignalSocket(fromUserId, { answer });
         } else if (signal.answer) {
-          if (pc.signalingState !== 'stable') {
+          if (pc.signalingState === 'have-local-offer') {
             await pc.setRemoteDescription(new RTCSessionDescription(signal.answer));
+            await drainIceCandidates(fromUserId, pc);
           }
         } else if (signal.candidate) {
-          await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
+          // If remote description is already set, add immediately; otherwise buffer
+          if (pc.remoteDescription && pc.remoteDescription.type) {
+            await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
+          } else {
+            if (!pendingCandidatesRef.current.has(fromUserId)) {
+              pendingCandidatesRef.current.set(fromUserId, []);
+            }
+            pendingCandidatesRef.current.get(fromUserId).push(signal.candidate);
+          }
         }
       } catch (err) {
         console.warn('Error handling voice signal:', err);
@@ -314,7 +409,39 @@ export function useVoiceChat() {
     return () => {
       socket.off('voice_signal', handleVoiceSignal);
     };
-  }, [createPeerConnection, sendVoiceSignalSocket, socket]);
+  }, [createPeerConnection, drainIceCandidates, sendVoiceSignalSocket, socket, user?.userId]);
+
+  // Handle participants leaving to clean up peer connections
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleUserLeft = (data) => {
+      const leftUserId = data?.userId;
+      if (!leftUserId) return;
+
+      const pc = peersRef.current.get(leftUserId);
+      if (pc) {
+        pc.close();
+        peersRef.current.delete(leftUserId);
+      }
+
+      const audioEl = remoteAudiosRef.current.get(leftUserId);
+      if (audioEl) {
+        audioEl.srcObject = null;
+        if (audioEl.parentNode) audioEl.parentNode.removeChild(audioEl);
+        remoteAudiosRef.current.delete(leftUserId);
+      }
+
+      pendingCandidatesRef.current.delete(leftUserId);
+      isMakingOfferRef.current.delete(leftUserId);
+    };
+
+    socket.on('user_left', handleUserLeft);
+
+    return () => {
+      socket.off('user_left', handleUserLeft);
+    };
+  }, [socket]);
 
   // Clean up remote audios and peer connections when leaving
   useEffect(() => {
@@ -327,6 +454,8 @@ export function useVoiceChat() {
         if (el.parentNode) el.parentNode.removeChild(el);
       });
       remoteAudiosRef.current.clear();
+      pendingCandidatesRef.current.clear();
+      isMakingOfferRef.current.clear();
     };
   }, [stopLocalAudio]);
 
