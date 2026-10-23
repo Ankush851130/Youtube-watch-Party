@@ -648,10 +648,8 @@ class RoomManager {
 
     participant.isSpeaking = speakingBool;
 
-    // When a participant stops speaking / turns off mic, reset micAllowed so they must request permission next time
-    if (!speakingBool && participant.role === 'PARTICIPANT') {
-      participant.micAllowed = false;
-    }
+    // Note: Do not reset micAllowed on silence pause. Speaking permission remains
+    // granted until explicitly revoked by Host/Mod or participant leaves the room.
 
     return {
       success: true,
